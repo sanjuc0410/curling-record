@@ -210,7 +210,7 @@ main.wide{max-width:none}
 .kdg{display:flex;gap:12px;align-items:flex-start}
 .kid-top{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
 .kt-left{flex:1 1 300px;min-width:0}
-.kt-dg{display:grid;gap:10px;align-items:start;max-width:100%;overflow-x:auto;flex:0 1 auto}
+.kt-dg{display:grid;gap:10px;align-items:start;max-width:100%;overflow-x:auto;flex:0 0 auto}
 .kdgc{margin:0;display:grid;gap:4px;justify-items:center;width:118px}
 .kdgc figcaption{display:grid;gap:2px;text-align:center;font-size:12.5px;line-height:1.3}
 .dg-note{display:inline-block;font-size:11.5px;color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:2px 6px}
@@ -829,6 +829,8 @@ const DG_PRESETS={
   draw:{name:'드로우 (버튼 목표)',stones:[{x:237.5,y:183,c:'t'}],zones:{btn:'5',f4:'4',f8:'3',f12:'2',fgz:'',out:'0'}},
   guard:{name:'가드 (프리가드존)',stones:[{x:237.5,y:430,c:'t'}],zones:{btn:'',f4:'',f8:'',f12:'1',fgz:'4',out:'0'}},
   take:{name:'테이크아웃 (상대 스톤 제거)',stones:[{x:200,y:150,c:'g'}],zones:{btn:'',f4:'',f8:'',f12:'',fgz:'',out:''}}};
+function isShotSkill(sk){return !!sk&&(sk.id==='shot'||/샷/.test(sk.name||''))}
+function skillOfItem(id){return S.skills.find(sk=>sk.items.some(i=>i.id===id))}
 function dgHas(dg){return !!(dg&&dg.on&&((dg.stones&&dg.stones.length)||ZONES.some(([k])=>dg.zones&&String(dg.zones[k]??'')!=='')||dg.note))}
 function diagramSVG(dg,o){o=o||{};dg=dg||{};const z=dg.zones||{};const W=DG.W,cx=DG.cx,ty=DG.tee;
   const usesFgz=String(z.fgz??'')!==''||(dg.stones||[]).some(st=>st.y>ty+DG.r12-10);const H=(o.edit||usesFgz)?DG.H:ty+DG.r12+40;
@@ -939,7 +941,7 @@ function viewKid(){
   if(K.page==='result')return viewResult(true);
   const td=today();const ds=S.sessions.filter(s=>s.date===td).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
   if(!ds.length)return `<div class="card empty"><h2>오늘 만들어진 평가가 없어요</h2><p>코치 선생님께 말씀해 주세요.</p></div>`;
-  const seen=new Set(),dgs=[];ds.forEach(s=>s.items.forEach(it=>{const df=itemDef(it.itemId);if(!seen.has(it.itemId)&&dgHas(df?.diagram)){seen.add(it.itemId);dgs.push({it,df})}}));
+  const seen=new Set(),dgs=[];ds.forEach(s=>s.items.forEach(it=>{const df=itemDef(it.itemId);if(!seen.has(it.itemId)&&dgHas(df?.diagram)&&isShotSkill(skillOfItem(it.itemId))){seen.add(it.itemId);dgs.push({it,df})}}));
   return `<section class="card kid-hello kid-top"><div class="kt-left"><h1>내 이름 아래 숫자를 눌러요</h1>
     <p class="sub" style="margin:4px 0 0">${dayLabel(td)} · 숫자를 한 번 누르면 1회 기록돼요. 잘못 눌렀으면 ↺ 지우기를 누르세요.${ds.length>1?' 옆으로 밀면 다른 시트로 가요.':''}</p>
     ${ds.length>1?`<div class="chips" style="margin-top:10px;flex-wrap:wrap">${ds.map(s=>{const g=sessProgress(s);return `<button class="chip ksheet" data-act="sbjump" data-v="${s.id}"><b>${s.sheet?'시트 '+esc(s.sheet):'시트 없음'}</b> ${esc(sessTeamName(s))} <span class="num">${g.pct}%</span></button>`}).join('')}</div>`:''}</div>
@@ -953,8 +955,8 @@ function kidBoard(sess){
   return `<section class="card sheet-block kboard" id="sb_${sess.id}" style="--n:${ps.length}">${head}
    <table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
       return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${pSub(sess,p)}</div><span class="heat ${heatM(ov,T)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
-   <tbody>${sess.items.map(it=>{const df=itemDef(it.itemId);const note=df?.diagram?.note;
-     return `<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}${dgHas(df?.diagram)?' · 위 그림 참고':''}</span>${note?` <span class="pill blue">${esc(note)}</span>`:''}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`}).join('')}</tbody></table></section>`}
+   <tbody>${sess.items.map(it=>{const df=itemDef(it.itemId);const shot=isShotSkill(skillOfItem(it.itemId));const note=shot?df?.diagram?.note:'';
+     return `<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}${shot&&dgHas(df?.diagram)?' · 위 그림 참고':''}</span>${note?` <span class="pill blue">${esc(note)}</span>`:''}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`}).join('')}</tbody></table></section>`}
 function kidCell(sess,p,it){
   const at=peekAttempts(sess,p.id);const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);
   const n=a.filter(x=>x!=null).length,full=n===it.reps,v=avg(a);const hit=S.kidHit===sess.id+'|'+p.id+'|'+it.itemId;
@@ -1030,7 +1032,7 @@ function viewSet(){
      <label class="f" style="flex:1;min-width:100px">차트 표시명<input type="text" class="w100" data-f="skshort" data-si="${si}" value="${esc(s.short||'')}"></label>
      <button class="btn sm" data-act="skup" data-si="${si}" ${si===0?'disabled':''} aria-label="위로">↑</button><button class="btn sm" data-act="skdel" data-si="${si}">기능 삭제</button></div>
      <div class="it-edit sub" style="font-size:12px"><span>테스트 항목</span><span class="crin">평가 기준 / 방법</span><span>기본 횟수</span><span>점수 범위</span><span></span></div>
-     ${s.items.map((it,ii)=>`<div class="it-edit"><input type="text" data-f="itname" data-si="${si}" data-ii="${ii}" value="${esc(it.name)}" placeholder="테스트 항목"><input type="text" class="crin" data-f="itcr" data-si="${si}" data-ii="${ii}" value="${esc(it.criteria||'')}" placeholder="평가 기준 / 방법"><input type="text" inputmode="numeric" data-f="itreps" data-si="${si}" data-ii="${ii}" value="${it.reps||1}" aria-label="기본 횟수"><select data-f="itmax" data-si="${si}" data-ii="${ii}" aria-label="평가 단계">${SCALES.map(m=>`<option value="${m}" ${mx(it)===m?'selected':''}>${scaleTxt(m)}</option>`).join('')}</select><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm ${dgHas(it.diagram)?'pri':''}" data-act="dgopen" data-si="${si}" data-ii="${ii}" aria-pressed="${S.dgEdit===si+'-'+ii}">그림</button><button class="btn sm" data-act="itdel" data-si="${si}" data-ii="${ii}">삭제</button></div></div>${S.dgEdit===si+'-'+ii?dgEditor(it,si,ii):''}`).join('')}
+     ${s.items.map((it,ii)=>`<div class="it-edit"><input type="text" data-f="itname" data-si="${si}" data-ii="${ii}" value="${esc(it.name)}" placeholder="테스트 항목"><input type="text" class="crin" data-f="itcr" data-si="${si}" data-ii="${ii}" value="${esc(it.criteria||'')}" placeholder="평가 기준 / 방법"><input type="text" inputmode="numeric" data-f="itreps" data-si="${si}" data-ii="${ii}" value="${it.reps||1}" aria-label="기본 횟수"><select data-f="itmax" data-si="${si}" data-ii="${ii}" aria-label="평가 단계">${SCALES.map(m=>`<option value="${m}" ${mx(it)===m?'selected':''}>${scaleTxt(m)}</option>`).join('')}</select><div class="row" style="gap:4px;flex-wrap:nowrap">${isShotSkill(s)?`<button class="btn sm ${dgHas(it.diagram)?'pri':''}" data-act="dgopen" data-si="${si}" data-ii="${ii}" aria-pressed="${S.dgEdit===si+'-'+ii}">그림</button>`:''}<button class="btn sm" data-act="itdel" data-si="${si}" data-ii="${ii}">삭제</button></div></div>${isShotSkill(s)&&S.dgEdit===si+'-'+ii?dgEditor(it,si,ii):''}`).join('')}
      <div><button class="btn sm" data-act="itadd" data-si="${si}">+ 테스트 항목 추가</button></div></div>`).join('')}
    <div><button class="btn" data-act="skadd">+ 평가 기능 추가</button></div></section>`;
   h+=`<section class="card"><div class="row between"><div><h2>이 기기</h2><p class="sub">${esc(syncText())} · 다른 코치의 입력은 20초마다 받아옵니다.</p>
