@@ -13,7 +13,7 @@
   --bg:#EDF2F6; --card:#FFFFFF; --ink:#13253A; --muted:#5B6B7C; --line:#D5DFE7;
   --red:#C42334; --blue:#1F5AA6; --red-soft:#F7DEE1; --blue-soft:#DDE8F6;
   --h1:#E7EDF4; --h2:#C4D5EA; --h3:#92B1DA; --h4:#5884C1; --h5:#1F5AA6; --on-strong:#FFFFFF;
-  --good:#1E7F4F; --bad:#B4372B; --warn-bg:#FFF4D6; --warn-ink:#7A5600;
+  --good:#1E7F4F; --bad:#B4372B; --warn-bg:#FFF4D6; --warn-ink:#7A5600; --stone-y:#E2B323; --fgz:#F3EBC9;
   --f-display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
   --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -22,12 +22,12 @@
   --bg:#0D1721; --card:#15222F; --ink:#E5EDF5; --muted:#93A4B5; --line:#26384A;
   --red:#F0606C; --blue:#72A6EA; --red-soft:#3B1F26; --blue-soft:#1A2D45;
   --h1:#1B2938; --h2:#223F68; --h3:#2E5B95; --h4:#4A82C8; --h5:#7FB0F0; --on-strong:#0D1721;
-  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; color-scheme:dark}}
+  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; --stone-y:#F2C94C; --fgz:#3A3420; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0D1721; --card:#15222F; --ink:#E5EDF5; --muted:#93A4B5; --line:#26384A;
   --red:#F0606C; --blue:#72A6EA; --red-soft:#3B1F26; --blue-soft:#1A2D45;
   --h1:#1B2938; --h2:#223F68; --h3:#2E5B95; --h4:#4A82C8; --h5:#7FB0F0; --on-strong:#0D1721;
-  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; color-scheme:dark}
+  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; --stone-y:#F2C94C; --fgz:#3A3420; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -199,6 +199,24 @@ table.grid th.l{text-align:left}
 .sb-wrap .grid th .ih{min-width:56px;max-width:90px}
 .sb-jump{display:flex;gap:6px;flex-wrap:wrap}
 main.wide{max-width:none}
+.dg{display:block;border-radius:8px;flex:none;max-width:100%;height:auto}
+.dg-edit{cursor:crosshair;touch-action:manipulation}
+.dg-editor{grid-column:1/-1;border:1px dashed var(--blue);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--bg)}
+.dg-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.dg-zones{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;margin-top:4px}
+.dg-zones input{width:100%}
+.dg-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
+.dg-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;border:1px solid var(--ink)}
+.kdg{display:flex;gap:12px;align-items:flex-start}
+.kr-list{display:grid;gap:8px}
+.kr-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card);cursor:pointer;font:inherit;color:inherit;text-align:left}
+.kr-item:hover{border-color:var(--blue)}
+.kr-item .grow{flex:1;min-width:0;display:grid}
+.rk.big{width:42px;height:42px;font-size:19px;flex:none}
+.kr-score{display:grid;gap:4px;justify-items:end;min-width:90px}
+.kr-score b{font-size:22px}
+.kr-bar{width:90px;height:8px;border-radius:4px;background:var(--bg);overflow:hidden;border:1px solid var(--line)}
+.kr-bar i{display:block;height:100%;background:var(--blue)}
 .toprank{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:10px}
 .tr-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--card);cursor:pointer;font:inherit;color:inherit;text-align:left}
 .tr-item:hover{border-color:var(--blue)}
@@ -679,7 +697,7 @@ function sheetHead(sess,tools){const g=sessProgress(sess);const k='sess:'+sess.i
    ${tools?`<div class="row"><button class="btn sm" data-act="editsess" data-v="${sess.id}">설정</button><button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delsess" data-v="${sess.id}">${S.confirm===k?'삭제 확인':'삭제'}</button></div>`:''}</div>`}
 function sheetBlock(sess){
   return `<section class="card sheet-block" id="sb_${sess.id}">${sheetHead(sess,true)}
-   ${S.showCrit?`<div class="crit" style="margin:0 14px 10px">${sess.items.map(it=>`<div><b>${esc(it.name)}</b> <span class="sub">${esc(itemDef(it.itemId)?.criteria||'')}</span></div>`).join('')}</div>`:''}
+   ${S.showCrit?`<div class="crit" style="margin:0 14px 10px">${sess.items.map(it=>{const df=itemDef(it.itemId);return `<div class="row" style="align-items:flex-start;flex-wrap:nowrap">${dgHas(df?.diagram)?diagramSVG(df.diagram,{w:70,lines:false}):''}<div><b>${esc(it.name)}</b> <span class="sub">${esc(df?.criteria||'')}</span></div></div>`}).join('')}</div>`:''}
    ${sheetGrid(sess,'input')}</section>`}
 function sheetGrid(sess,mode){
   const ps=sessPlayers(sess);if(!ps.length)return '<p class="sub" style="padding:0 14px 14px">선수가 없습니다.</p>';
@@ -788,11 +806,64 @@ function rankTSV(mode){const R=rankState();
   const rows=res.ok.map(r=>[r.rank,r.p.name,teamOf(r.p.teamId)?.name||'',r.p.position||'',f1(r.total),...res.items.map(i=>f1(r.per[i.id])),r.n,top&&r.rank<=top?'선발':'']);
   return [head,...rows].map(a=>a.join('\t')).join('\n')}
 
+/* ---- 샷 그림 (프리가드존 + 하우스) ----
+   좌표: cm 단위, 위쪽 = 백라인(y=0), 티라인 y=183, 아래쪽 = 호그라인(y=823), 폭 475 */
+const DG={W:475,H:823,cx:237.5,tee:183,r12:183,r8:122,r4:61,rb:15,sr:14.5};
+const ZONES=[['btn','버튼'],['f4','4ft'],['f8','8ft'],['f12','12ft'],['fgz','프리가드존'],['out','그 밖']];
+const DG_PRESETS={
+  draw:{name:'드로우 (버튼 목표)',stones:[{x:237.5,y:183,c:'t'}],zones:{btn:'5',f4:'4',f8:'3',f12:'2',fgz:'',out:'0'}},
+  guard:{name:'가드 (프리가드존)',stones:[{x:237.5,y:430,c:'t'}],zones:{btn:'',f4:'',f8:'',f12:'1',fgz:'4',out:'0'}},
+  take:{name:'테이크아웃 (상대 스톤 제거)',stones:[{x:200,y:150,c:'g'}],zones:{btn:'',f4:'',f8:'',f12:'',fgz:'',out:''}}};
+function dgHas(dg){return !!(dg&&dg.on&&((dg.stones&&dg.stones.length)||ZONES.some(([k])=>dg.zones&&String(dg.zones[k]??'')!=='')))}
+function diagramSVG(dg,o){o=o||{};dg=dg||{};const z=dg.zones||{};const W=DG.W,cx=DG.cx,ty=DG.tee;
+  const usesFgz=String(z.fgz??'')!==''||(dg.stones||[]).some(st=>st.y>ty+DG.r12-10);const H=(o.edit||usesFgz)?DG.H:ty+DG.r12+40;
+  const lab=(x,y,t)=>t===''||t==null?'':`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${o.fs||40}" font-weight="700" style="fill:var(--ink);stroke:var(--card);stroke-width:9;paint-order:stroke">${esc(String(t))}</text>`;
+  let g=`<svg class="dg ${o.edit?'dg-edit':''}" viewBox="0 0 ${W} ${H}" width="${o.w||140}" ${o.edit?`data-act="dgclick" data-si="${o.si}" data-ii="${o.ii}"`:''} role="img" aria-label="프리가드존과 하우스 그림">`;
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" fill="var(--card)" stroke="var(--line)" stroke-width="4"/>`;
+  g+=`<rect x="0" y="${ty}" width="${W}" height="${H-ty}" fill="var(--fgz)"/>`;
+  g+=`<circle cx="${cx}" cy="${ty}" r="${DG.r12}" fill="var(--blue)" fill-opacity=".55"/><circle cx="${cx}" cy="${ty}" r="${DG.r8}" fill="var(--card)"/><circle cx="${cx}" cy="${ty}" r="${DG.r4}" fill="var(--red)" fill-opacity=".55"/><circle cx="${cx}" cy="${ty}" r="${DG.rb}" fill="var(--card)" stroke="var(--line)" stroke-width="3"/>`;
+  g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="var(--muted)" stroke-width="2" stroke-opacity=".6"/><line x1="0" y1="${ty}" x2="${W}" y2="${ty}" stroke="var(--muted)" stroke-width="2" stroke-opacity=".6"/>`;
+  if(H===DG.H)g+=`<line x1="0" y1="${H-4}" x2="${W}" y2="${H-4}" stroke="var(--red)" stroke-width="8"/>`;
+  if(o.lines!==false){if(H===DG.H)g+=`<text x="${W-10}" y="${H-22}" text-anchor="end" font-size="26" style="fill:var(--muted)">호그라인</text>`;g+=`<text x="${W-10}" y="${ty+30}" text-anchor="end" font-size="26" style="fill:var(--muted)">티라인</text>`}
+  const onBtn=(dg.stones||[]).some(st=>Math.hypot(st.x-cx,st.y-ty)<45);
+  g+=lab(cx-38,ty,z.f4)+lab(cx-92,ty,z.f8)+lab(cx-152,ty,z.f12)+lab(cx,ty+(DG.H-ty)/2+60,z.fgz)+lab(48,52,z.out)+lab(W-48,52,z.out);
+  if(String(z.btn??'')!=='')g+=onBtn?`<line x1="${cx+12}" y1="${ty-12}" x2="${cx+62}" y2="${ty-70}" stroke="var(--ink)" stroke-width="3"/>${lab(cx+80,ty-88,z.btn)}`:lab(cx,ty,z.btn);
+  if(String(z.fgz??'')!==''||H===DG.H&&!o.edit)g+=`<text x="${cx}" y="${ty+(DG.H-ty)/2+10}" text-anchor="middle" font-size="26" style="fill:var(--muted)">프리가드존</text>`;
+  (dg.stones||[]).forEach(st=>{const col=st.c==='g'?'var(--stone-y)':'var(--red)';
+    g+=`<circle cx="${st.x}" cy="${st.y}" r="${DG.sr*1.25}" fill="${col}" stroke="var(--ink)" stroke-width="4"/><rect x="${st.x-8}" y="${st.y-3}" width="16" height="6" rx="3" fill="var(--card)"/>`;
+    if(st.c==='t')g+=`<circle cx="${st.x}" cy="${st.y}" r="${DG.sr*2.6}" fill="none" stroke="var(--red)" stroke-width="4" stroke-dasharray="10 8"/>`});
+  return g+'</svg>'}
+function dgLegend(dg){const hasT=(dg.stones||[]).some(x=>x.c==='t'),hasG=(dg.stones||[]).some(x=>x.c==='g');
+  return `<div class="dg-legend">${hasT?'<span><i style="background:var(--red)"></i>목표 자리</span>':''}${hasG?'<span><i style="background:var(--stone-y)"></i>상대·가드 스톤</span>':''}${ZONES.some(([k])=>String(dg.zones?.[k]??'')!=='')?'<span>숫자 = 멈춘 자리 점수</span>':''}</div>`}
+function dgEditor(it,si,ii){const dg=it.diagram||{};const tool=S.dgTool||'t';
+  return `<div class="dg-editor"><div class="row between"><b>${esc(it.name||'테스트 항목')} 그림</b>
+    <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" data-f="dgon" data-si="${si}" data-ii="${ii}" ${dg.on?'checked':''}> 선수 모드에 그림 보이기</label></div>
+   <div class="dg-wrap">${diagramSVG(dg,{w:230,edit:true,si,ii})}
+    <div style="display:grid;gap:10px;min-width:0;flex:1">
+     <div><div class="sub">그림을 눌러 스톤 놓기</div><div class="row" style="gap:6px;margin-top:4px">
+      <button class="chip" data-act="dgtool" data-v="t" aria-current="${tool==='t'}">● 목표 자리 (빨강)</button><button class="chip" data-act="dgtool" data-v="g" aria-current="${tool==='g'}">● 상대·가드 스톤 (노랑)</button><button class="chip" data-act="dgtool" data-v="x" aria-current="${tool==='x'}">지우개</button>
+      <button class="btn sm" data-act="dgclear" data-si="${si}" data-ii="${ii}">스톤 모두 지우기</button></div></div>
+     <div><div class="sub">자리별 점수 (비워 두면 표시 안 함)</div><div class="dg-zones">${ZONES.map(([k,n])=>`<label class="f">${n}<input type="text" inputmode="numeric" data-f="dgz" data-k="${k}" data-si="${si}" data-ii="${ii}" value="${esc(dg.zones?.[k]??'')}"></label>`).join('')}</div></div>
+     <div><div class="sub">빠른 설정</div><div class="row" style="gap:6px;margin-top:4px">${Object.entries(DG_PRESETS).map(([k,p])=>`<button class="btn sm" data-act="dgpreset" data-v="${k}" data-si="${si}" data-ii="${ii}">${p.name}</button>`).join('')}</div></div>
+     <p class="sub" style="margin:0">위쪽이 백라인, 아래 빨간 선이 호그라인입니다. 바꾼 뒤 위의 <b>항목 저장</b>을 눌러야 적용됩니다.</p>
+    </div></div></div>`}
+
 /* ---- 결과 보기 ---- */
+const KRKEY='curling.kidrank';
+const kidRankOn=()=>lsGet(KRKEY)!=='0';
+function kidRankView(){const T=S.kidRankTeam||'all';const res=autoRank(T,'all');
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">결과 보기</div><h1>종합 순위</h1><p class="sub" style="margin:4px 0 0">지금까지 한 모든 평가를 합친 순위예요. (5점 만점으로 환산)</p></div>
+    <div class="row" style="gap:6px"><button class="chip" data-act="kidres" data-v="day">날짜별 결과</button><button class="chip" data-act="kidres" data-v="rank" aria-current="true">종합 순위</button></div></div>
+   <div class="row" style="margin-top:10px"><button class="chip" data-act="kidrt" data-v="all" aria-current="${T==='all'}">전체</button>${S.teams.map(t=>`<button class="chip" data-act="kidrt" data-v="${t.id}" aria-current="${T===t.id}">${esc(t.name)}</button>`).join('')}</div></section>`;
+  if(!res.ok.length)return h+`<div class="card empty"><h2>아직 순위가 없어요</h2><p>평가를 하면 순위가 나와요.</p></div>`;
+  return h+`<section class="card"><div class="kr-list">${res.ok.map(r=>`<button class="kr-item" data-act="resp" data-s="" data-v="${r.p.id}"><span class="rk big ${r.rank<=3?'r'+r.rank:''}">${r.rank}</span>
+    <span class="grow"><b class="kname" style="font-size:20px">${esc(r.p.name)}</b><span class="sub">${esc(teamOf(r.p.teamId)?.name||'')} · ${esc(r.p.position||'')} · 평가 ${r.n}번</span></span>
+    <span class="kr-score"><b class="num">${f1(r.total)}</b><span class="kr-bar"><i style="width:${Math.max(0,Math.min(100,r.total/5*100))}%"></i></span></span></button>`).join('')}</div></section>`}
 function viewResult(kid){
   if(S.resP&&playerOf(S.resP))return resultPlayer(kid);
+  if(kid&&kidRankOn()&&S.kidRes==='rank')return kidRankView();
   const D=S.resDate;const ds=S.sessions.filter(s=>s.date===D).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
-  let h=`<section class="card"><div class="eyebrow">결과 보기</div><h1>${dayLabel(D)} 결과</h1>
+  let h=`<section class="card"><div class="row between"><div class="eyebrow">결과 보기</div>${kid&&kidRankOn()?`<div class="row" style="gap:6px"><button class="chip" data-act="kidres" data-v="day" aria-current="true">날짜별 결과</button><button class="chip" data-act="kidres" data-v="rank">종합 순위</button></div>`:''}</div><h1>${dayLabel(D)} 결과</h1>
    <p class="sub" style="margin:4px 0 0">${kid?'내 이름을 누르면 자세한 기록과 지난번보다 얼마나 늘었는지 볼 수 있어요.':'이름을 누르면 회차별 점수와 기능별 변화를 볼 수 있습니다.'}</p>
    <div style="margin-top:10px">${dateNav(D,'rdate')}</div>
    ${!kid&&ds.length?(()=>{const k='resday:'+D;const nr=S.records.filter(r=>ds.some(x=>x.id===r.sessionId)).length;return `<div class="row" style="margin-top:12px"><button class="btn danger ${S.confirm===k?'armed':''}" data-act="delresday">${S.confirm===k?`정말 삭제 (평가 ${ds.length}개 · 기록 ${nr}건)`:`${dayLabel(D)} 평가 모두 삭제`}</button>${S.confirm===k?'<span class="sub">한 번 더 누르면 지워지고 되돌릴 수 없습니다. 특이사항은 남습니다.</span>':''}</div>`})():''}</section>`;
@@ -863,7 +934,8 @@ function kidBoard(sess){
   return `<section class="card kboard"><div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(sessTeamName(sess))}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div>${ps.length>8?'<span class="sub">옆으로 밀면 다른 친구가 보여요 →</span>':''}</div>
    <div class="scroll" id="kbScroll" data-k="${sess.id}"><table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
       return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${pSub(sess,p)}</div><span class="heat ${heatM(ov,T)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
-   <tbody>${sess.items.map(it=>`<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}</span></td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`).join('')}</tbody></table></div></section>`}
+   <tbody>${sess.items.map(it=>`<tr class="kband"><td colspan="${ps.length}">${(()=>{const df=itemDef(it.itemId);const dg=df?.diagram;const head=`<b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}</span>`;
+      if(!dgHas(dg))return head;return `<div class="kdg">${diagramSVG(dg,{w:150})}<div style="display:grid;gap:4px;align-content:start;min-width:0"><div>${head}</div>${df.criteria?`<div class="sub">${esc(df.criteria)}</div>`:''}${dgLegend(dg)}</div></div>`})()}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`).join('')}</tbody></table></div></section>`}
 function kidCell(sess,p,it){
   const at=peekAttempts(sess,p.id);const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);
   const n=a.filter(x=>x!=null).length,full=n===it.reps,v=avg(a);const hit=S.kidHit===sess.id+'|'+p.id+'|'+it.itemId;
@@ -939,10 +1011,11 @@ function viewSet(){
      <label class="f" style="flex:1;min-width:100px">차트 표시명<input type="text" class="w100" data-f="skshort" data-si="${si}" value="${esc(s.short||'')}"></label>
      <button class="btn sm" data-act="skup" data-si="${si}" ${si===0?'disabled':''} aria-label="위로">↑</button><button class="btn sm" data-act="skdel" data-si="${si}">기능 삭제</button></div>
      <div class="it-edit sub" style="font-size:12px"><span>테스트 항목</span><span class="crin">평가 기준 / 방법</span><span>기본 횟수</span><span>점수 범위</span><span></span></div>
-     ${s.items.map((it,ii)=>`<div class="it-edit"><input type="text" data-f="itname" data-si="${si}" data-ii="${ii}" value="${esc(it.name)}" placeholder="테스트 항목"><input type="text" class="crin" data-f="itcr" data-si="${si}" data-ii="${ii}" value="${esc(it.criteria||'')}" placeholder="평가 기준 / 방법"><input type="text" inputmode="numeric" data-f="itreps" data-si="${si}" data-ii="${ii}" value="${it.reps||1}" aria-label="기본 횟수"><select data-f="itmax" data-si="${si}" data-ii="${ii}" aria-label="평가 단계">${SCALES.map(m=>`<option value="${m}" ${mx(it)===m?'selected':''}>${scaleTxt(m)}</option>`).join('')}</select><button class="btn sm" data-act="itdel" data-si="${si}" data-ii="${ii}">삭제</button></div>`).join('')}
+     ${s.items.map((it,ii)=>`<div class="it-edit"><input type="text" data-f="itname" data-si="${si}" data-ii="${ii}" value="${esc(it.name)}" placeholder="테스트 항목"><input type="text" class="crin" data-f="itcr" data-si="${si}" data-ii="${ii}" value="${esc(it.criteria||'')}" placeholder="평가 기준 / 방법"><input type="text" inputmode="numeric" data-f="itreps" data-si="${si}" data-ii="${ii}" value="${it.reps||1}" aria-label="기본 횟수"><select data-f="itmax" data-si="${si}" data-ii="${ii}" aria-label="평가 단계">${SCALES.map(m=>`<option value="${m}" ${mx(it)===m?'selected':''}>${scaleTxt(m)}</option>`).join('')}</select><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm ${dgHas(it.diagram)?'pri':''}" data-act="dgopen" data-si="${si}" data-ii="${ii}" aria-pressed="${S.dgEdit===si+'-'+ii}">그림</button><button class="btn sm" data-act="itdel" data-si="${si}" data-ii="${ii}">삭제</button></div></div>${S.dgEdit===si+'-'+ii?dgEditor(it,si,ii):''}`).join('')}
      <div><button class="btn sm" data-act="itadd" data-si="${si}">+ 테스트 항목 추가</button></div></div>`).join('')}
    <div><button class="btn" data-act="skadd">+ 평가 기능 추가</button></div></section>`;
-  h+=`<section class="card"><div class="row between"><div><h2>이 기기</h2><p class="sub">${esc(syncText())} · 다른 코치의 입력은 20초마다 받아옵니다.</p></div>
+  h+=`<section class="card"><div class="row between"><div><h2>이 기기</h2><p class="sub">${esc(syncText())} · 다른 코치의 입력은 20초마다 받아옵니다.</p>
+   <label class="row" style="gap:8px;cursor:pointer;margin-top:6px"><input type="checkbox" data-f="kidrank" ${kidRankOn()?'checked':''}> 선수 모드 결과 보기에서 <b>종합 순위</b> 보여주기</label></div>
    <div class="row"><button class="btn" data-act="syncnow">지금 동기화</button><button class="btn danger ${S.confirm==='logout'?'armed':''}" data-act="dellogout">${S.confirm==='logout'?(S.queue.length?`보내지 않은 ${S.queue.length}건이 사라집니다. 접속 해제`:'접속 해제 확인'):'이 기기 접속 해제'}</button></div></div></section>`;
   if(!S.teams.length)h+=`<section class="card"><div class="row between"><div><h2>처음 써 보시나요?</h2><p class="sub">예시팀과 학생A~D의 가상 기록을 넣어 화면을 미리 볼 수 있습니다. 설정에서 언제든 지울 수 있습니다.</p></div><button class="btn" data-act="mksample">예시 데이터 넣기</button></div></section>`;
   const sampleN=['teams','players','records','notes','sessions'].reduce((a,c)=>a+S[c].filter(x=>x.sample).length,0);
@@ -975,6 +1048,7 @@ async function loadNames(){
 /* ---------- events ---------- */
 function curSess(){return sessOf(S.sessId)}
 document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)return;
+  if(f==='dgz'){const it=S.skillDraft[+el.dataset.si].items[+el.dataset.ii];it.diagram=Object.assign({on:true,stones:[],zones:{}},it.diagram);it.diagram.zones={...it.diagram.zones,[el.dataset.k]:el.value.trim().slice(0,4)};return}
   if(f==='ntext')S.noteForm.text=el.value;
   else if(f==='nstitle')S.newSess.title=el.value;
   else if(f==='nsrepin'){const n=Math.max(1,Math.min(30,parseInt(el.value,10)||1));S.newSess.items[el.dataset.i]=n}
@@ -983,6 +1057,8 @@ document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)ret
   else if(/^sk|^it/.test(f)){const s=S.skillDraft[+el.dataset.si];if(f==='skname')s.name=el.value;if(f==='skshort')s.short=el.value;
     const it=s.items[+el.dataset.ii];if(f==='itname')it.name=el.value;if(f==='itcr')it.criteria=el.value;if(f==='itreps')it.reps=Math.max(1,Math.min(30,parseInt(el.value,10)||1))}});
 document.addEventListener('change',e=>{const el=e.target,f=el.dataset.f;if(!f)return;
+  if(f==='kidrank'){lsSet(KRKEY,el.checked?'1':'0');toast(el.checked?'선수 모드에서 종합 순위를 보여줍니다':'선수 모드에서 종합 순위를 숨깁니다');render();return}
+  if(f==='dgon'){const it=S.skillDraft[+el.dataset.si].items[+el.dataset.ii];it.diagram=Object.assign({stones:[],zones:{}},it.diagram,{on:el.checked});render();return}
   if(f==='itmax'){S.skillDraft[+el.dataset.si].items[+el.dataset.ii].max=+el.value;render();return}
   if(f==='allmax'){if(el.value){S.skillDraft.forEach(sk=>sk.items.forEach(it=>it.max=+el.value));toast(`모든 항목을 ${scaleTxt(+el.value)}로 바꿨습니다. 항목 저장을 눌러야 적용됩니다`)}render();return}
   if(f==='team'){flushAll();S.teamId=el.value;S.playerId=null;S.sessId=null;S.evalP=null;S.newSess=null;render()}
@@ -1066,6 +1142,18 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]
   case 'kq':{const ss=sessOf(b.dataset.s);if(!ss)break;const it=ss.items.find(x=>x.itemId===b.dataset.i);const d=getDraft(ss,b.dataset.p);const a=d.attempts[b.dataset.i];const t=a.findIndex(x=>x==null);if(t<0){toast('이 항목은 다 했어요');break}
     if(!it||+v<0||+v>mx(it))break;a[t]=+v;schedule(ss,b.dataset.p);S.kidHit=ss.id+'|'+b.dataset.p+'|'+b.dataset.i;clearTimeout(S.kidHitT);S.kidHitT=setTimeout(()=>{S.kidHit=null;softRender()},900);render();
     toast(`${playerOf(b.dataset.p)?.name||''} · ${it?.name||''} ${t+1}회 ${v}점${a.every(x=>x!=null)?' · 완료!':''}`);break}
+  case 'kidres':S.kidRes=v;S.resP=null;render();window.scrollTo(0,0);break;
+  case 'kidrt':S.kidRankTeam=v;render();break;
+  case 'dgopen':{const k=si+'-'+ii;S.dgEdit=S.dgEdit===k?null:k;render();break}
+  case 'dgtool':S.dgTool=v;render();break;
+  case 'dgclear':{const it=S.skillDraft[si].items[ii];it.diagram=Object.assign({on:true,zones:{}},it.diagram,{stones:[]});render();break}
+  case 'dgpreset':{const it=S.skillDraft[si].items[ii];const p=DG_PRESETS[v];it.diagram={on:true,stones:clone(p.stones),zones:clone(p.zones)};
+    const M=mx(it);Object.keys(it.diagram.zones).forEach(k=>{const n=it.diagram.zones[k];if(n!==''&&+n>M)it.diagram.zones[k]=String(M)});render();toast(p.name+' 그림을 넣었습니다. 항목 저장을 눌러야 적용됩니다');break}
+  case 'dgclick':{const it=S.skillDraft[si]?.items[ii];if(!it)break;const r=b.getBoundingClientRect();const x=Math.round((e.clientX-r.left)/r.width*DG.W),y=Math.round((e.clientY-r.top)/r.height*DG.H);
+    const dg=it.diagram=Object.assign({on:true,zones:{}},it.diagram);dg.stones=[...(dg.stones||[])];const tool=S.dgTool||'t';
+    if(tool==='x'){let bi=-1,bd=1e9;dg.stones.forEach((st,i)=>{const dd=Math.hypot(st.x-x,st.y-y);if(dd<bd){bd=dd;bi=i}});if(bi>=0&&bd<60)dg.stones.splice(bi,1)}
+    else{if(dg.stones.length>=8){toast('스톤은 8개까지 놓을 수 있습니다');break}dg.stones.push({x:Math.max(0,Math.min(DG.W,x)),y:Math.max(0,Math.min(DG.H,y)),c:tool})}
+    dg.on=true;render();break}
   case 'kidsheet':S.kidSheetId=v;render();window.scrollTo(0,0);break;
   case 'kqu':{const ss=sessOf(b.dataset.s);if(!ss)break;const d=getDraft(ss,b.dataset.p);const a=d.attempts[b.dataset.i];for(let k=a.length-1;k>=0;k--)if(a[k]!=null){a[k]=null;break}schedule(ss,b.dataset.p);render();toast('마지막 점수를 지웠어요');break}
   case 'delresday':if(arm('resday:'+S.resDate)){const ds=S.sessions.filter(x=>x.date===S.resDate);const ids=new Set(ds.map(x=>x.id));
@@ -1078,7 +1166,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]
   case 'sbjump':{const el=document.getElementById('sb_'+v),w=document.getElementById('sbWrap');if(el&&w)w.scrollTo({left:el.offsetLeft-w.offsetLeft,behavior:'smooth'});break}
   case 'resp':S.resP=v;S.resS=b.dataset.s;render();window.scrollTo(0,0);break;
   case 'resback':S.resP=null;render();break;
-  case 'kidpage':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.kid.page=v;S.resP=null;S.resDate=today();render();window.scrollTo(0,0);break}
+  case 'kidpage':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.kid.page=v;S.resP=null;S.kidRes='day';S.resDate=today();render();window.scrollTo(0,0);break}
   case 'memoopen':S.memoOpen=v;render();setTimeout(()=>document.getElementById('rm_'+v)?.focus(),0);break;
   case 'mdate':S.memoDate=v;render();break;
   case 'togglecrit':S.showCrit=!S.showCrit;render();break;
