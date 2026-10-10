@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>컬링 기량 기록부</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: 시트(sheet) 위 하우스 — 상단 고정 탭 바, 아래 카드형 작업면. 레이더 차트는 하우스 링 위에 그린다 */
+:root{
+  --bg:#EDF2F6; --card:#FFFFFF; --ink:#13253A; --muted:#5B6B7C; --line:#D5DFE7;
+  --red:#C42334; --blue:#1F5AA6; --red-soft:#F7DEE1; --blue-soft:#DDE8F6;
+  --h1:#E7EDF4; --h2:#C4D5EA; --h3:#92B1DA; --h4:#5884C1; --h5:#1F5AA6; --on-strong:#FFFFFF;
+  --good:#1E7F4F; --bad:#B4372B; --warn-bg:#FFF4D6; --warn-ink:#7A5600;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1721; --card:#15222F; --ink:#E5EDF5; --muted:#93A4B5; --line:#26384A;
+  --red:#F0606C; --blue:#72A6EA; --red-soft:#3B1F26; --blue-soft:#1A2D45;
+  --h1:#1B2938; --h2:#223F68; --h3:#2E5B95; --h4:#4A82C8; --h5:#7FB0F0; --on-strong:#0D1721;
+  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1721; --card:#15222F; --ink:#E5EDF5; --muted:#93A4B5; --line:#26384A;
+  --red:#F0606C; --blue:#72A6EA; --red-soft:#3B1F26; --blue-soft:#1A2D45;
+  --h1:#1B2938; --h2:#223F68; --h3:#2E5B95; --h4:#4A82C8; --h5:#7FB0F0; --on-strong:#0D1721;
+  --good:#4CC38A; --bad:#F07A6E; --warn-bg:#3A2F12; --warn-ink:#F2D27A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.55}
+button,input,select,textarea{font:inherit;color:inherit}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-size:22px;letter-spacing:.5px}
+.brand svg{flex:none}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{border:0;background:transparent;padding:7px 12px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:600}
+.tab:hover{background:var(--bg);color:var(--ink)}
+.tab[aria-current="true"]{background:var(--ink);color:var(--card)}
+.teamsel{margin-left:auto;display:flex;align-items:center;gap:8px}
+main{max-width:1180px;margin:0 auto;padding-block:20px 60px;padding-inline:16px;display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-family:var(--f-display);font-weight:400;font-size:28px}
+h2{font-family:var(--f-display);font-weight:400;font-size:21px}
+h3{font-size:15px;font-weight:700}
+.sub{color:var(--muted);font-size:13px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.btn{border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:var(--on-strong)}
+.btn.danger{color:var(--bad)}
+.btn.danger.armed{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.btn.sm{padding:4px 10px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+input[type=text],input[type=date],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+textarea{width:100%;min-height:72px;resize:vertical}
+label.f{display:grid;gap:4px;font-size:12.5px;color:var(--muted);font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:24px}
+.stat b{display:block;font-family:var(--f-num);font-size:22px;font-weight:500;color:var(--ink)}
+.stat > span{font-size:12px;color:var(--muted)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.l,th.l{text-align:left}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--bg)}
+.heat{border-radius:6px;font-family:var(--f-num);font-size:13px;padding:5px 0;min-width:44px;display:inline-block}
+.h0{background:transparent;color:var(--muted)}
+.h1{background:var(--h1)} .h2{background:var(--h2)} .h3{background:var(--h3)}
+.h4{background:var(--h4);color:var(--on-strong)} .h5{background:var(--h5);color:var(--on-strong)}
+.up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--muted)}
+.pill{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted);font-weight:600}
+.pill.red{background:var(--red-soft);color:var(--red);border-color:transparent}
+.pill.blue{background:var(--blue-soft);color:var(--blue);border-color:transparent}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:10px 14px;font-size:13px}
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty h2{color:var(--ink);margin-bottom:6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.chart text{fill:var(--muted);font-family:var(--f-body)}
+/* score stones */
+.skill{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:10px}
+.skill-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:center}
+@media (max-width:560px){.item{grid-template-columns:minmax(0,1fr)}}
+.item .cr{font-size:12.5px;color:var(--muted)}
+.stones{display:flex;gap:6px;align-items:center}
+.stone{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:var(--card);cursor:pointer;font-family:var(--f-num);font-size:13px;display:grid;place-items:center;padding:0;transition:transform .08s}
+.stone:hover{border-color:var(--blue)}
+.stone.on{background:var(--red);border-color:var(--red);color:#fff;box-shadow:inset 0 0 0 4px rgba(255,255,255,.35)}
+.stone.x{width:auto;border-radius:8px;padding:0 8px;font-family:var(--f-body);font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.stone:active{transform:scale(.92)}}
+.lvl{font-size:12px;color:var(--muted);min-width:60px}
+.list{display:grid;gap:0}
+.li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li .grow{flex:1;min-width:0}
+.date{font-family:var(--f-num);font-size:12.5px;color:var(--muted);white-space:nowrap}
+.mini{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;min-width:0}
+.mini .v{font-family:var(--f-num);font-size:20px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);padding:9px 16px;border-radius:8px;font-size:13px;z-index:20}
+.edit-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+@media (max-width:640px){.edit-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.sk-edit{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:8px}
+.it-edit{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:6px}
+@media (max-width:640px){.it-edit{grid-template-columns:minmax(0,1fr)}}
+.w100{width:100%}
+.it-edit{grid-template-columns:minmax(0,1fr) minmax(0,2fr) 92px auto}
+@media (max-width:640px){.it-edit{grid-template-columns:minmax(0,1fr) 92px auto}.it-edit .crin{grid-column:1/-1;order:5}}
+/* ---- mobile / tablet ---- */
+@media (max-width:640px){
+  body{font-size:15px}
+  .top-in{gap:8px 12px;padding-block:8px}
+  .brand{font-size:19px}
+  .tabs{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .tab{white-space:nowrap;padding:9px 12px}
+  .card{padding:14px}
+  h1{font-size:24px}
+}
+/* ---- evaluation session ---- */
+.sess{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:760px){.sess{grid-template-columns:minmax(0,1fr)}.sess.has-p .plist{display:none}.sess:not(.has-p) .panel{display:none}}
+@media (min-width:761px){.backbtn{display:none}}
+.plist{display:grid;gap:8px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
+.pbtn{display:grid;gap:6px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;cursor:pointer;min-height:60px}
+.pbtn:hover{border-color:var(--muted)}
+.pbtn[aria-current="true"]{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.pbtn .nm{font-size:17px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.bar{height:6px;border-radius:3px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue)}
+.bar.done i{background:var(--good)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap}
+.chip[aria-current="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.chip.done:not([aria-current="true"]){background:var(--blue-soft);color:var(--blue);border-color:transparent}
+.slots{display:flex;flex-wrap:wrap;gap:8px}
+.slot{width:46px;height:46px;border-radius:50%;border:2px dashed var(--line);background:transparent;cursor:pointer;display:grid;place-items:center;font-family:var(--f-num);font-size:16px;padding:0;position:relative}
+.slot.f{border-style:solid;border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+.slot.sel{outline:3px solid var(--red);outline-offset:2px}
+.slot small{position:absolute;bottom:-15px;font-size:9.5px;color:var(--muted);font-family:var(--f-body)}
+.pad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.padb{border:1px solid var(--line);background:var(--card);border-radius:14px;min-height:72px;cursor:pointer;display:grid;place-items:center;align-content:center;gap:2px;padding:6px 2px}
+.padb b{font-family:var(--f-num);font-size:26px;font-weight:500;line-height:1}
+.padb span{font-size:11.5px;color:var(--muted)}
+.padb:hover{border-color:var(--red)}
+@media (prefers-reduced-motion:no-preference){.padb:active{transform:scale(.95);background:var(--red-soft)}}
+.toggle{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:var(--card);text-align:left;width:100%}
+.toggle .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14px;color:var(--card)}
+.toggle[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft)}
+.toggle[aria-pressed="true"] .box{background:var(--blue);border-color:var(--blue)}
+.ns-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:38px;height:38px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:18px}
+.step input{width:52px;text-align:center;padding:7px 4px}
+.save-st{font-size:12px;color:var(--muted)}
+@media (max-width:560px){.ns-item{grid-template-columns:minmax(0,1fr)}.ns-item .step{justify-content:flex-end}.slot{width:42px;height:42px}}
+.sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.sheet-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:start;background:linear-gradient(to bottom,var(--blue-soft),var(--card) 46px)}
+.sheet-card.empty-sheet{border-style:dashed;background:var(--card)}
+.sheet-card .lt{font-family:var(--f-display);font-size:28px;line-height:1}
+.sheet-sess{display:grid;gap:5px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 10px;cursor:pointer}
+.sheet-sess:hover{border-color:var(--blue)}
+.sheetb{display:grid;gap:2px;min-width:82px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 10px;cursor:pointer;text-align:left}
+.sheetb b{font-family:var(--f-display);font-size:24px;font-weight:400;line-height:1.1}
+.sheetb span{font-size:11.5px;color:var(--muted);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheetb[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-strong)}
+.sheetb[aria-pressed="true"] span{color:var(--on-strong);opacity:.85}
+.flabel{font-size:13px;font-weight:700}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.sheet-tag{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:9px;background:var(--blue);color:var(--on-strong);margin-right:10px;font-size:22px;vertical-align:middle}
+@media (max-width:420px){.sheets{grid-template-columns:repeat(2,minmax(0,1fr))}.sheetb{min-width:0;flex:1 1 28%}}
+.sync{font-size:12px;color:var(--muted);font-family:var(--f-num)}
+.sync[data-err="1"]{color:var(--bad);font-weight:600}
+.banner.err{background:var(--red-soft);color:var(--red)}
+.datenav input[type=date]{padding:5px 8px}
+.sheet-card.filled{text-align:left;cursor:pointer;font:inherit;color:inherit;justify-items:start}
+.sheet-card.filled:hover{border-color:var(--blue)}
+.sheet-card.filled .bar{width:100%}
+.items-s{font-size:12.5px;color:var(--ink);line-height:1.45}
+table.grid{width:auto;min-width:100%}
+table.grid th,table.grid td{padding:5px 6px;vertical-align:middle}
+table.grid th{text-align:center}
+table.grid th.l{text-align:left}
+.grid th .sub{display:block}
+.sb-wrap{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(min(88vw,340px),1fr);gap:12px;align-items:start;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:8px;overscroll-behavior-x:contain}
+.sb-wrap .sheet-block{scroll-snap-align:start;min-width:0}
+.sb-wrap .cell{min-width:62px;padding:5px 6px}
+.sb-wrap .grid th .ih{min-width:56px;max-width:90px}
+.sb-jump{display:flex;gap:6px;flex-wrap:wrap}
+main.wide{max-width:none}
+.rank-wrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:960px){.rank-wrap{grid-template-columns:minmax(0,1fr)}.rank-wrap>div{order:-1}}
+.rk-list{display:grid;gap:6px;max-height:340px;overflow-y:auto;padding-right:2px}
+.rk-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.rk-item.off .toggle{opacity:.6}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:8px 10px;cursor:pointer;font:inherit;font-size:13px;font-family:var(--f-num)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--on-strong)}
+.rank-tbl td{text-align:center}
+.rank-tbl tr.picked td{background:color-mix(in srgb,var(--red-soft) 55%,var(--card))}
+.rank-tbl tr.picked td.stick{background:color-mix(in srgb,var(--red-soft) 55%,var(--card))}
+.rank-tbl tr.cutline td{border-bottom:3px solid var(--red)}
+.rank-tbl .tot{font-size:18px}
+.rk{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-family:var(--f-num);font-weight:500;background:var(--bg)}
+.rk.r1{background:var(--red);color:#fff}.rk.r2{background:var(--blue);color:var(--on-strong)}.rk.r3{background:var(--h3);color:var(--ink)}
+.sb-wrap .sheet-block{margin:0}
+table.grid th{vertical-align:bottom}
+.stick{position:sticky;left:0;background:var(--card);z-index:1;box-shadow:1px 0 0 var(--line)}
+.grid th .ih{display:block;font-size:12.5px;color:var(--ink);white-space:normal;min-width:70px;max-width:110px;margin:0 auto;line-height:1.3}
+.cell{display:grid;gap:4px;justify-items:center;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:5px 8px;min-width:78px;min-height:46px;cursor:pointer;font:inherit;color:inherit}
+.cell:hover{border-color:var(--blue)}
+.cell.full{background:var(--blue-soft);border-color:transparent}
+.cell.cur{outline:3px solid var(--red);outline-offset:1px}
+.dots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:92px}
+.dots i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--h3)}
+.dots i.on{background:var(--blue);border-color:var(--blue)}
+.pn{display:flex;gap:8px;align-items:center}
+.flag{border:1px solid var(--line);background:var(--card);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;cursor:pointer;color:var(--h3);padding:0;flex:none}
+.flag.on{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.bsheet{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(10,30,50,.18);padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-width:760px;margin:0 auto;border-radius:16px 16px 0 0}
+main.has-sheet{padding-bottom:440px}
+.sheet-block{padding:0;overflow:hidden;display:grid}
+.sb-head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:12px 14px;background:linear-gradient(to right,var(--blue-soft),var(--card));border-bottom:1px solid var(--line)}
+.sb-team{font-size:17px}
+.rowbtn{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.rowbtn:hover .grow{color:var(--blue)}
+.namebtn{display:grid;gap:1px;text-align:left;border:0;background:transparent;padding:4px 2px;cursor:pointer;font:inherit;color:inherit}
+.namebtn:hover b{color:var(--blue);text-decoration:underline}
+.pad-wrap{display:grid;gap:12px}
+.crit{display:grid;gap:6px;margin-top:12px;font-size:13px;border-top:1px solid var(--line);padding-top:10px}
+.memo-row{border-top:1px solid var(--line);padding-block:12px;display:grid;gap:8px}
+.memo-row.closed{padding-block:8px}
+.memo-row textarea{min-height:56px}
+.slots{row-gap:22px}
+.sheet-tag.sm{width:28px;height:28px;font-size:17px;border-radius:7px;margin-right:8px}
+.kidgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.kidbig{display:grid;gap:6px;align-content:start;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:16px;min-height:120px;cursor:pointer;font:inherit;color:inherit}
+.kidbig:hover,.kidbig:focus-visible{border-color:var(--blue)}
+.kidbig .lt{font-family:var(--f-display);font-size:34px;line-height:1}
+.kidbig b{font-size:18px}
+.kidname{font-size:26px;font-weight:700;font-family:var(--f-body)}
+main.kidmode{max-width:900px}
+main.kidmode.wide{max-width:none}
+.pad-wrap.kid h2{font-size:28px}
+.pad-wrap.kid .padb{min-height:96px;border-width:2px}
+.pad-wrap.kid .padb b{font-size:36px}
+.pad-wrap.kid .padb span{font-size:13px}
+.pad-wrap.kid .slot{width:50px;height:50px;font-size:18px}
+.kid-done .big{font-family:var(--f-num);font-size:44px;margin:6px 0 0}
+.kbar{display:grid;grid-template-columns:72px minmax(0,1fr) 40px;gap:10px;align-items:center}
+.kbar .track{height:16px;background:var(--bg);border-radius:8px;position:relative;border:1px solid var(--line)}
+.kbar .track i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:8px}
+.kbar .track .pm{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--red);border-radius:2px}
+.kidtop .brand{font-size:20px}
+.kid-wrap{grid-auto-columns:minmax(min(92vw,360px),1fr)}
+.kcards{display:grid;gap:10px;padding:12px}
+.kcard{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px;background:var(--card);transition:box-shadow .3s,border-color .3s}
+.kcard.hit{border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
+.krow{display:grid;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.kitem{font-size:15px}
+.dots.kd{justify-content:flex-start;max-width:none;gap:4px}
+.dots.kd i{width:20px;height:20px;font-style:normal;font-size:11px;font-family:var(--f-num);display:grid;place-items:center;color:var(--on-strong)}
+.kpad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 44px;gap:6px}
+.kpad button{min-height:48px;border:1px solid var(--line);background:var(--card);border-radius:10px;font-family:var(--f-num);font-size:20px;cursor:pointer;color:var(--ink)}
+.kpad button:hover:not(:disabled){border-color:var(--red);background:var(--red-soft)}
+.kpad button:disabled{opacity:.35;cursor:default}
+.kpad .kundo{font-size:18px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.kpad button:active:not(:disabled){transform:scale(.94)}}
+.kboard{padding:0;overflow:hidden}
+.ktable{border-collapse:separate;border-spacing:6px 0;table-layout:fixed;width:100%;min-width:calc(var(--n) * 118px + 12px);padding:4px 0 10px}
+.ktable th{padding:10px 4px 6px;vertical-align:bottom;text-align:center;font-weight:400;color:var(--ink)}
+.kname{font-size:19px;font-weight:700;line-height:1.2;word-break:keep-all}
+.ktable .kband td{padding:14px 6px 6px;font-size:15px;border:0;text-align:left;white-space:normal}
+.ktable td.kc{vertical-align:top;border:1px solid var(--line);border-radius:12px;padding:8px 7px;background:var(--card);text-align:left;white-space:normal;transition:border-color .3s,box-shadow .3s}
+.ktable td.kc.full{background:color-mix(in srgb,var(--blue-soft) 45%,var(--card))}
+.ktable td.kc.hit{border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
+.kcn{font-size:12px;color:var(--muted);font-weight:600}
+.dots.kd2{justify-content:flex-start;max-width:none;gap:3px;margin:4px 0 6px}
+.dots.kd2 i{width:15px;height:15px;font-style:normal;font-size:9.5px;font-family:var(--f-num);display:grid;place-items:center;color:var(--on-strong)}
+.kvpad{display:grid;gap:5px}
+.kvpad button{min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:4px;padding:0 9px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;color:var(--ink);font:inherit}
+.kvpad button b{font-family:var(--f-num);font-size:21px;font-weight:500}
+.kvpad button span{font-size:11px;color:var(--muted);white-space:nowrap}
+.kvpad button:hover:not(:disabled){border-color:var(--red);background:var(--red-soft)}
+.kvpad .kundo{min-height:34px;justify-content:center;font-size:12.5px;color:var(--muted);border-style:dashed}
+.kvpad button:disabled{opacity:.35;cursor:default}
+@media (prefers-reduced-motion:no-preference){.kvpad button:active:not(:disabled){transform:scale(.95)}}
+.kdone{display:grid;gap:6px;justify-items:start}
+.ksheet[aria-current="true"] .num{color:inherit}
+</style>
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div id="app">
+  <header class="top"><div class="top-in">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue)"/><circle cx="14" cy="14" r="9" fill="var(--card)"/><circle cx="14" cy="14" r="5.5" fill="var(--red)"/><circle cx="14" cy="14" r="2" fill="var(--card)"/></svg>
+      컬링 기량 기록부
+    </div>
+  </div></header>
+  <main><div class="card empty"><h2>기록을 불러오는 중</h2><p>팀, 선수, 평가 기록을 가져오고 있습니다.</p></div></main>
+</div>
+
+<script>
+(function(){
+const DEFAULT_SKILLS=[
+ {id:'bal',name:'딜리버리 밸런스',short:'밸런스',items:[
+  {id:'bal1',name:'슬라이드 자세 안정성',reps:3,criteria:'핵 출발부터 호그라인까지 상체·골반이 흔들리지 않고 슬라이딩 풋 위에 무게중심 유지'},
+  {id:'bal2',name:'슬라이딩 직진성',reps:3,criteria:'슬라이딩 경로가 출발 라인에서 벗어나지 않음'},
+  {id:'bal3',name:'트레일링 레그·브룸 지지',reps:3,criteria:'뒷다리 뻗음과 브룸(스태빌라이저) 지지가 매 투구 일정함'}]},
+ {id:'rel',name:'릴리즈 정확성',short:'릴리즈',items:[
+  {id:'rel1',name:'회전(인/아웃턴) 정확성',reps:5,criteria:'지시한 회전 방향과 회전 수(호그-호그 2.5~3회전)를 유지'},
+  {id:'rel2',name:'릴리즈 타이밍',reps:5,criteria:'호그라인 전 일정 지점에서 놓고, 놓는 순간 스톤을 밀거나 당기지 않음'},
+  {id:'rel3',name:'팔로스루',reps:3,criteria:'릴리즈 후 손과 팔이 타깃 브룸 방향으로 뻗어 있음'}]},
+ {id:'line',name:'딜리버리 라인 정확성',short:'라인',items:[
+  {id:'line1',name:'브룸 타깃 정렬',reps:5,criteria:'스킵 브룸을 향해 몸·스톤을 정렬하고 출발'},
+  {id:'line2',name:'라인 유지',reps:10,criteria:'투구마다: 브룸 정중앙 5 · 브룸 헤드 안 4 · 반 브룸 벗어남 3 · 한 브룸 2 · 그 이상 1'}]},
+ {id:'shot',name:'다양한 샷 (드로우·테이크)',short:'샷',items:[
+  {id:'shot1',name:'드로우',reps:10,criteria:'투구마다 정지 위치: 버튼 5 · 4ft 4 · 8ft 3 · 12ft 2 · 하우스 밖 1'},
+  {id:'shot2',name:'가드 샷',reps:5,criteria:'프리가드존 지정 위치에 정지할수록 높은 점수'},
+  {id:'shot3',name:'테이크아웃 (히트 앤 스테이)',reps:5,criteria:'제거+슈터 하우스 잔류 5 · 제거만 4 · 맞혔으나 남음 2 · 놓침 1'},
+  {id:'shot4',name:'히트 앤 롤 / 더블',reps:5,criteria:'타격 후 지정 위치로 롤하거나 두 스톤을 제거'}]},
+ {id:'swp',name:'스위핑 능력',short:'스위핑',items:[
+  {id:'swp1',name:'스위핑 자세·압력',reps:3,criteria:'브룸 헤드에 체중을 실어 일정한 압력과 속도로 스윕'},
+  {id:'swp2',name:'지속력',reps:3,criteria:'호그라인부터 하우스까지 강도 유지'},
+  {id:'swp3',name:'콜 반응',reps:3,criteria:'스윕/오프 지시에 즉시 반응'}]},
+ {id:'wgt',name:'웨이트 판단',short:'웨이트',items:[
+  {id:'wgt1',name:'웨이트 존 콜',reps:5,criteria:'호그라인 통과 시 예상 정지 존(1~10)을 콜: 정확 5 · 1존 차이 4 · 2존 3 · 3존 2 · 그 이상 1'},
+  {id:'wgt2',name:'스플릿 타임 활용',reps:3,criteria:'백라인-호그 시간으로 웨이트를 판단하고 조정'},
+  {id:'wgt3',name:'아이스 변화 반영',reps:1,criteria:'엔드 진행에 따른 아이스 속도 변화를 다음 투구에 반영'}]},
+ {id:'read',name:'라인 읽기 (하우스 콜)',short:'콜',items:[
+  {id:'read1',name:'컬 판단과 브룸 위치',reps:3,criteria:'아이스의 컬 양을 읽고 적절한 브룸 위치 제시'},
+  {id:'read2',name:'라인 콜 타이밍',reps:3,criteria:'스톤 진행 중 스윕 지시를 적시에 정확히 함'},
+  {id:'read3',name:'하우스 상황 전달',reps:1,criteria:'스톤 위치·거리를 팀원에게 명확히 전달'}]},
+ {id:'tac',name:'전술 이해',short:'전술',items:[
+  {id:'tac1',name:'샷 선택',reps:3,criteria:'점수·엔드·해머 유무를 고려한 샷 선택 (상황 문제 출제)'},
+  {id:'tac2',name:'규칙 이해 (FGZ 등)',reps:1,criteria:'프리가드존(5스톤 룰) 등 규칙을 이해하고 활용'},
+  {id:'tac3',name:'게임 플랜 이해',reps:1,criteria:'공격/수비 전환과 팀 전략을 스스로 설명할 수 있음'}]}
+];
+const LEVEL={1:'미흡',2:'노력 필요',3:'보통',4:'우수',5:'매우 우수'};
+const POS=['리드','세컨드','서드','스킵','후보'];
+const NOTE_CAT=['부상·통증','컨디션','기술','태도·멘탈','기타'];
+
+const S={teams:[],players:[],records:[],notes:[],sessions:[],skills:clone(DEFAULT_SKILLS),loaded:false,
+  tab:'eval',boardDate:today(),resDate:today(),resP:null,resS:null,memoDate:today(),memoFlagOnly:false,cell:false,showCrit:false,kidDone:false,kid:{on:lsGet('curling.kid')==='1',view:'enter'},teamId:null,playerId:null,skillDraft:null,confirm:null,
+  sessId:null,evalP:null,evalItem:0,slot:null,newSess:null,drafts:{},timers:{},saving:{},dirty:{},saveState:'',
+  db:null,user:null,uid:null,canWrite:true,offline:false,names:{},pending:false,noteForm:{cat:'기술',text:'',date:today()}};
+
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+function uid(p){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtD(d){return d?d.replace(/-/g,'.'):'-'}
+function shortD(d){return d?d.slice(5).replace('-','.'):''}
+function f1(v){return v==null||isNaN(v)?'-':(Math.round(v*10)/10).toFixed(1)}
+function avg(a){a=(a||[]).filter(v=>v!=null&&!isNaN(v));return a.length?a.reduce((x,y)=>x+y,0)/a.length:null}
+function r2(v){return v==null?null:Math.round(v*100)/100}
+function heatCls(v){return v==null?'h0':'h'+Math.max(1,Math.min(5,Math.round(v)))}
+function delta(v){if(v==null||isNaN(v))return '<span class="flat">–</span>';const r=Math.round(v*10)/10;
+  if(r>0)return `<span class="up num">▲${r.toFixed(1)}</span>`;if(r<0)return `<span class="down num">▼${Math.abs(r).toFixed(1)}</span>`;return '<span class="flat num">0.0</span>'}
+function toast(m){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+
+/* ---------- data helpers ---------- */
+const teamPlayers=tid=>S.players.filter(p=>p.teamId===tid).sort((a,b)=>(POS.indexOf(a.position)-POS.indexOf(b.position))||a.name.localeCompare(b.name,'ko'));
+const playerRecs=pid=>S.records.filter(r=>r.playerId===pid).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.createdAt||'')<(b.createdAt||'')?-1:1);
+const teamOf=id=>S.teams.find(t=>t.id===id);
+const playerOf=id=>S.players.find(p=>p.id===id);
+const sessOf=id=>S.sessions.find(s=>s.id===id);
+function series(pid,sid){return playerRecs(pid).filter(r=>r.skillScores&&r.skillScores[sid]!=null).map(r=>({date:r.date,v:r.skillScores[sid]}))}
+function profile(pid,which){const o={};S.skills.forEach(s=>{const se=series(pid,s.id);const x=which==='last'?se[se.length-1]:which==='prev'?se[se.length-2]:se[0];if(x)o[s.id]=x.v});return o}
+function ovr(o){return o?avg(S.skills.map(s=>o[s.id])):null}
+function profDelta(pid,base){ // base 'prev' | 'first'
+  const d=[];S.skills.forEach(s=>{const se=series(pid,s.id);if(se.length<2)return;const b=base==='prev'?se[se.length-2]:se[0];d.push(se[se.length-1].v-b.v)});return d.length?avg(d):null}
+function teamAvg(tid,which){const o={};const ps=teamPlayers(tid);const pr=ps.map(p=>profile(p.id,which));S.skills.forEach(s=>{const v=avg(pr.map(x=>x[s.id]));if(v!=null)o[s.id]=v});return o}
+function recOverall(r){return r?avg(Object.values(r.skillScores||{})):null}
+
+/* ---------- store (Google Apps Script + 기기 임시 보관) ---------- */
+const QKEY='curling.queue.v1',PKEY='curling.pin.v1';
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+const AKEY='curling.api.v1';
+const IN_GAS=!!(window.google&&google.script&&google.script.run);
+function apiUrl(){return lsGet(AKEY)||''}
+async function gs(action,payload,pin){
+  const body={pin:pin??S.pin,action,payload:payload||{}};
+  if(IN_GAS)return new Promise((res,rej)=>{google.script.run.withSuccessHandler(r=>{if(r&&r.error)rej(r);else res(r)}).withFailureHandler(e=>rej({error:'network',message:String(e&&e.message||e)})).api(body.pin,action,body.payload)});
+  const url=apiUrl();if(!url)throw {error:'noapi',message:'서버 주소(웹 앱 URL)를 먼저 입력하세요.'};
+  let r;try{r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)})}catch(e){throw {error:'network',message:'서버에 연결하지 못했습니다. 인터넷 연결이나 서버 주소를 확인하세요.'}}
+  let j;try{j=await r.json()}catch(e){throw {error:'network',message:'서버 응답을 읽지 못했습니다. 서버 주소가 /exec 로 끝나는지, Code.gs를 새 버전으로 배포했는지 확인하세요.'}}
+  if(j&&j.error)throw j;return j}
+try{S.queue=JSON.parse(lsGet(QKEY)||'[]')||[]}catch(e){S.queue=[]}
+function saveQueue(){lsSet(QKEY,JSON.stringify(S.queue))}
+function applyLocal(op){
+  if(op.a==='putSkills'){S.skills=clone(op.skills);return}
+  if(op.a==='delMany'){op.items.forEach(x=>{const arr=S[x.col];if(!arr)return;const i=arr.findIndex(y=>y.id===x.id);if(i>=0)arr.splice(i,1)});return}
+  const arr=S[op.col];if(!arr)return;const i=arr.findIndex(x=>x.id===op.id);
+  if(op.a==='del'){if(i>=0)arr.splice(i,1);return}
+  const v={...op.data,id:op.id};if(i>=0)arr[i]=v;else arr.push(v)}
+const qkey=op=>op.a==='putSkills'?'skills':op.a==='delMany'?op.key:op.col+'/'+op.id;
+function enqueue(op){S.queue=S.queue.filter(q=>qkey(q)!==qkey(op));S.queue.push(op);saveQueue();applyLocal(op);pump()}
+async function pump(){
+  if(S.pumping||!S.pin)return;S.pumping=true;paintSync();
+  while(S.queue.length){const op=S.queue[0];
+    try{await gs(op.a,op.a==='putSkills'?{skills:op.skills}:op.a==='delMany'?{items:op.items}:{col:op.col,id:op.id,data:op.data});
+      S.queue=S.queue.filter(q=>q!==op);saveQueue();if(S.syncErr){S.syncErr=null;softRender()}S.lastSync=new Date();paintSync()}
+    catch(e){
+      if(e.error==='pin'||e.error==='nopin'||e.error==='locked'){S.pumping=false;authFail(e);return}
+      if(e.error==='bad_action'&&op.a==='delMany'){const idx=S.queue.indexOf(op);S.queue.splice(idx,1,...op.items.map(x=>({a:'del',col:x.col,id:x.id})));saveQueue();continue}
+      if(['bad_col','bad_id','bad_data','too_big','bad_action'].includes(e.error)){S.queue=S.queue.filter(q=>q!==op);saveQueue();toast(e.message);continue}
+      const first=!S.syncErr;S.syncErr=e.message||'연결 실패';S.pumping=false;paintSync();if(first)softRender();setTimeout(pump,5000);return}}
+  S.pumping=false;paintSync()}
+async function put(col,id,data){enqueue({a:'put',col,id,data:{...data,updatedAt:new Date().toISOString()}});softRender();return true}
+async function del(col,id){enqueue({a:'del',col,id});softRender();return true}
+function delMany(items){if(!items.length)return;enqueue({a:'delMany',key:uid('m'),items});softRender()}
+async function putSkills(skills){enqueue({a:'putSkills',skills:clone(skills)});return true}
+function hm(d){return d?String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):''}
+function syncText(){if(!S.pin)return '';if(S.syncErr)return `연결 끊김 · 대기 ${S.queue.length}건`;if(S.queue.length)return `저장 중 ${S.queue.length}건`;return S.lastSync?`동기화 ${hm(S.lastSync)}`:'동기화 중…'}
+function paintSync(){const el=document.getElementById('syncSt');if(el){el.textContent=syncText();el.dataset.err=S.syncErr?'1':''}}
+function applyLoad(d){
+  ['teams','players','sessions','records','notes'].forEach(c=>S[c]=d[c]||[]);
+  S.skills=d.skills&&d.skills.length?clone(d.skills):clone(DEFAULT_SKILLS);
+  S.queue.forEach(applyLocal)}
+async function refresh(force){
+  if(!S.pin||(!force&&(S.queue.length||S.pumping||S.refreshing)))return;
+  S.refreshing=true;
+  try{const r=await gs('load');if(!S.queue.length||force)applyLoad(r.data);S.lastSync=new Date();if(S.syncErr)S.syncErr=null;
+    const was=S.loaded;S.loaded=true;was?softRender():render()}
+  catch(e){if(e.error==='pin'||e.error==='nopin'||e.error==='locked')authFail(e);else{S.syncErr=e.message;if(!S.loaded){S.loaded=true;render()}else softRender()}}
+  finally{S.refreshing=false;paintSync()}}
+function authFail(e){S.pin=null;lsSet(PKEY,null);S.loaded=false;S.authMsg=e.message||'다시 접속해 주세요.';render()}
+function pinView(){return `<section class="card" style="max-width:420px;margin:24px auto;display:grid;gap:14px">
+  <div><div class="eyebrow">코치 접속</div><h1>PIN을 입력하세요</h1><p class="sub" style="margin:4px 0 0">관리자에게 받은 코치 PIN을 입력하면 이 기기에서 계속 쓸 수 있습니다.</p></div>
+  <form id="pinForm" class="row" style="align-items:flex-end">${IN_GAS?'':`<label class="f" style="flex-basis:100%">서버 주소 (Apps Script 웹 앱 URL)<input type="url" id="apiIn" value="${esc(apiUrl())}" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>`}<label class="f" style="flex:1">코치 PIN<input type="password" id="pinIn" inputmode="numeric" autocomplete="current-password" style="font-size:20px;letter-spacing:.3em"></label>
+  <button class="btn pri" type="submit" style="min-height:44px">접속</button></form>
+  ${S.authMsg?`<p class="down" style="margin:0" role="alert">${esc(S.authMsg)}</p>`:''}</section>`}
+async function login(pin){
+  if(!pin){S.authMsg='PIN을 입력하세요';render();return}
+  S.authMsg='확인 중…';render();
+  try{const r=await gs('load',{},pin);S.pin=pin;lsSet(PKEY,pin);S.authMsg='';applyLoad(r.data);S.lastSync=new Date();S.loaded=true;render();pump()}
+  catch(e){S.authMsg=e.message||'접속하지 못했습니다';render()}}
+document.addEventListener('submit',e=>{if(e.target.id==='kidExitForm'){e.preventDefault();const v=(document.getElementById('kxPin')?.value||'').trim();if(v&&v===S.pin){flushAll();S.kid={on:false,view:'enter'};lsSet('curling.kid',null);S.sessId=null;S.evalP=null;S.tab='eval';render()}else{S.kid.exitMsg='PIN이 맞지 않습니다';render()}return}
+  if(e.target.id==='pinForm'){e.preventDefault();const ai=document.getElementById('apiIn');if(ai){const u=ai.value.trim();if(u&&!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(u)){S.authMsg='서버 주소는 https://script.google.com/macros/s/…/exec 형식이어야 합니다';render();return}lsSet(AKEY,u||null)}login((document.getElementById('pinIn')?.value||'').trim())}});
+function makeSample(){
+  const t='sample_team',mk=(n,pos,i)=>({id:'sample_p'+i,name:n,pos});
+  put('teams',t,{name:'예시팀 (샘플)',sample:true,createdAt:new Date().toISOString()});
+  const ps=[mk('학생A','리드',1),mk('학생B','세컨드',2),mk('학생C','서드',3),mk('학생D','스킵',4)];
+  ps.forEach(p=>put('players',p.id,{name:p.name,teamId:t,position:p.pos,sample:true,createdAt:new Date().toISOString()}));
+  const pick=[];S.skills.forEach(s=>{if(s.items[0])pick.push({itemId:s.items[0].id,skillId:s.id,skillName:s.name,name:s.items[0].name,reps:3})});
+  const dates=[-28,-14,0].map(o=>{const d=new Date();d.setDate(d.getDate()+o);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)});
+  dates.forEach((dt,si)=>{const sid='sample_s'+(si+1);const sess={date:dt,teamId:t,sheet:'A',playerIds:ps.map(p=>p.id),title:`기초 기능 ${si+1}차 평가`,items:pick,sample:true,createdAt:new Date().toISOString()};
+    put('sessions',sid,sess);
+    ps.forEach((p,pi)=>{const att={},sc={},sk={};pick.forEach(it=>{const mu=2.3+pi*.4+si*.4;const a=[0,1,2].map(()=>Math.max(1,Math.min(5,Math.round(mu+(Math.random()-.5)*2))));att[it.itemId]=a;sc[it.itemId]=r2(avg(a));sk[it.skillId]=sc[it.itemId]});
+      put('records',sid+'__'+p.id,{playerId:p.id,teamId:t,date:dt,sheet:'A',sessionId:sid,attempts:att,scores:sc,skillScores:sk,memo:'',sample:true,createdAt:new Date().toISOString(),by:null})})});
+  S.teamId=t;toast('예시 데이터를 넣었습니다');render()}
+
+/* ---------- session record drafts (auto-save) ---------- */
+const recId=(sid,pid)=>sid+'__'+pid;
+function getDraft(sess,pid){
+  const id=recId(sess.id,pid);
+  if(!S.drafts[id]){const r=S.records.find(x=>x.id===id);S.drafts[id]={attempts:clone(r?.attempts||{}),memo:r?.memo||'',flag:!!r?.flag,createdAt:r?.createdAt,by:r?.by,sample:r?.sample}}
+  const d=S.drafts[id];sess.items.forEach(it=>{const a=d.attempts[it.itemId]||[];while(a.length<it.reps)a.push(null);d.attempts[it.itemId]=a.slice(0,it.reps)});
+  return d}
+function peekAttempts(sess,pid){const id=recId(sess.id,pid);return S.drafts[id]?.attempts||S.records.find(x=>x.id===id)?.attempts||{}}
+function progress(sess,pid){const a=peekAttempts(sess,pid);let done=0,tot=0;sess.items.forEach(it=>{tot+=it.reps;done+=(a[it.itemId]||[]).slice(0,it.reps).filter(v=>v!=null).length});return {done,tot}}
+function buildRec(sess,pid,d){
+  const scores={},att={};sess.items.forEach(it=>{const a=(d.attempts[it.itemId]||[]).slice(0,it.reps);if(a.some(v=>v!=null)){att[it.itemId]=a;scores[it.itemId]=r2(avg(a))}});
+  const sk={};const g={};sess.items.forEach(it=>{if(scores[it.itemId]!=null)(g[it.skillId]=g[it.skillId]||[]).push(scores[it.itemId])});Object.keys(g).forEach(k=>sk[k]=r2(avg(g[k])));
+  const doc={playerId:pid,teamId:playerOf(pid)?.teamId||sess.teamId,date:sess.date,sheet:sess.sheet||'',sessionId:sess.id,attempts:att,scores,skillScores:sk,memo:(d.memo||'').trim(),flag:!!d.flag,createdAt:d.createdAt||new Date().toISOString(),by:d.by||S.uid||null};
+  if(d.sample)doc.sample=true;return doc}
+function schedule(sess,pid){const id=recId(sess.id,pid);S.saveState='저장 대기';clearTimeout(S.timers[id]);S.timers[id]=setTimeout(()=>flush(sess.id,pid),700)}
+async function flush(sid,pid){
+  const id=recId(sid,pid);clearTimeout(S.timers[id]);delete S.timers[id];
+  const sess=sessOf(sid);const d=S.drafts[id];if(!sess||!d)return;
+  if(S.saving[id]){S.dirty[id]=true;return}
+  S.saving[id]=true;S.saveState='저장 중…';paintSave();
+  const doc=buildRec(sess,pid,d);const exists=S.records.some(x=>x.id===id);let ok=true;
+  if(!Object.keys(doc.scores).length&&!doc.memo&&!doc.flag){if(exists)ok=await del('records',id)}else ok=await put('records',id,doc);
+  if(ok)d.createdAt=doc.createdAt;
+  S.saving[id]=false;S.saveState=ok?'저장됨':'저장 실패';paintSave();
+  if(S.dirty[id]){S.dirty[id]=false;flush(sid,pid)}}
+function flushAll(){Object.keys(S.timers).forEach(id=>{const [sid,pid]=id.split('__');flush(sid,pid)})}
+function paintSave(){const el=document.getElementById('saveSt');if(el)el.textContent=S.saveState}
+
+/* ---------- charts ---------- */
+function radar(series,size){
+  size=size||320;const sk=S.skills,n=sk.length;if(n<3)return '';
+  const pad=62,cx=size/2+pad,cy=size/2+28,R=size/2-10,W=size+pad*2,H=size+56;
+  const ang=i=>-Math.PI/2+i*2*Math.PI/n;
+  const pt=(i,v)=>[cx+Math.cos(ang(i))*R*(v/5),cy+Math.sin(ang(i))*R*(v/5)];
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" role="img" aria-label="기능별 점수 레이더">`;
+  g+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="var(--blue-soft)"/><circle cx="${cx}" cy="${cy}" r="${R*.66}" fill="var(--card)"/><circle cx="${cx}" cy="${cy}" r="${R*.33}" fill="var(--red-soft)"/><circle cx="${cx}" cy="${cy}" r="${R*.1}" fill="var(--card)"/>`;
+  for(let k=1;k<=5;k++)g+=`<circle cx="${cx}" cy="${cy}" r="${R*k/5}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  for(let k=1;k<=5;k++)g+=`<text x="${cx+3}" y="${cy-R*k/5+11}" font-size="9.5">${k}</text>`;
+  sk.forEach((s,i)=>{const [x,y]=pt(i,5);g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;
+    const lx=cx+Math.cos(ang(i))*(R+14),ly=cy+Math.sin(ang(i))*(R+14);const c=Math.cos(ang(i));
+    const anchor=Math.abs(c)<.2?'middle':c>0?'start':'end';
+    g+=`<text x="${lx}" y="${ly+4}" text-anchor="${anchor}" font-size="12" style="fill:var(--ink)">${esc(s.short||s.name)}</text>`});
+  series.forEach(se=>{if(!se.vals)return;if(!sk.some(s=>se.vals[s.id]!=null))return;
+    const pts=sk.map((s,i)=>pt(i,se.vals[s.id]||0));
+    g+=`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${se.color}" fill-opacity="${se.fill??.14}" stroke="${se.color}" stroke-width="${se.w||2}" ${se.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round"/>`;
+    if(!se.dash)pts.forEach((p,i)=>{if(se.vals[sk[i].id]!=null)g+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.2" fill="${se.color}"/>`})});
+  return g+'</svg>'}
+function legend(series){return '<div class="legend">'+series.filter(s=>s.vals&&Object.keys(s.vals).length).map(s=>`<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')+'</div>'}
+function spark(pts,w,h){
+  w=w||240;h=h||74;const l=18,r=10,t=8,b=18;const iw=w-l-r,ih=h-t-b;
+  const y=v=>t+ih-(v-1)/4*ih;const x=i=>pts.length<2?l+iw/2:l+i*iw/(pts.length-1);
+  let g=`<svg class="chart" viewBox="0 0 ${w} ${h}" width="100%" role="img">`;
+  [1,3,5].forEach(v=>{g+=`<line x1="${l}" x2="${w-r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${l-6}" y="${y(v)+3.5}" font-size="9.5" text-anchor="end">${v}</text>`});
+  const p=pts.map((d,i)=>[x(i),y(d.v)]);
+  if(p.length>1){g+=`<path d="M${p.map(q=>q.join(',')).join('L')} L${p[p.length-1][0]},${t+ih} L${p[0][0]},${t+ih}Z" fill="var(--blue)" fill-opacity=".1"/>`;
+    g+=`<polyline points="${p.map(q=>q.join(',')).join(' ')}" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linejoin="round"/>`}
+  p.forEach((q,i)=>{const last=i===p.length-1;g+=`<circle cx="${q[0]}" cy="${q[1]}" r="${last?4:2.5}" fill="${last?'var(--red)':'var(--blue)'}"/>`});
+  if(!pts.length)g+=`<text x="${w/2}" y="${h/2+4}" font-size="11" text-anchor="middle">기록 없음</text>`;
+  if(pts.length){g+=`<text x="${x(0)}" y="${h-4}" font-size="9.5" text-anchor="${pts.length<2?'middle':'start'}">${shortD(pts[0].date)}</text>`;
+    if(pts.length>1)g+=`<text x="${x(pts.length-1)}" y="${h-4}" font-size="9.5" text-anchor="end">${shortD(pts[pts.length-1].date)}</text>`}
+  return g+'</svg>'}
+
+/* ---------- views ---------- */
+function header(){
+  const tabs=[['eval','오늘 평가판'],['result','결과 보기'],['rank','순위·선발'],['memo','기록 정리'],['dash','팀 현황'],['player','선수 분석'],['set','설정']];
+  return `<header class="top"><div class="top-in">
+   <div class="brand"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="var(--blue)"/><circle cx="14" cy="14" r="9" fill="var(--card)"/><circle cx="14" cy="14" r="5.5" fill="var(--red)"/><circle cx="14" cy="14" r="2" fill="var(--card)"/></svg>컬링 기량 기록부</div>
+   ${S.pin?`<nav class="tabs">${tabs.map(([k,v])=>`<button class="tab" data-act="tab" data-v="${k}" aria-current="${S.tab===k}">${v}</button>`).join('')}</nav>`:''}
+   ${S.pin?`<span class="sync" id="syncSt" data-err="${S.syncErr?'1':''}" aria-live="polite">${syncText()}</span>`:''}
+   ${S.pin&&S.teams.length?`<div class="teamsel"><span class="sub">팀</span><select id="teamSel" data-f="team">${S.teams.map(t=>`<option value="${t.id}" ${t.id===S.teamId?'selected':''}>${esc(t.name)}</option>`).join('')}</select></div>`:''}
+  </div></header>`}
+function noTeam(){return `<div class="card empty"><h2>먼저 팀을 만들어 주세요</h2><p>설정에서 팀과 선수를 등록하면 평가를 기록하고 분석할 수 있습니다.</p><p><button class="btn pri" data-act="tab" data-v="set">팀·선수 등록하기</button></p></div>`}
+const noPlayers=()=>`<div class="card empty"><h2>이 팀에 선수가 없습니다</h2><p><button class="btn" data-act="tab" data-v="set">선수 등록</button></p></div>`;
+
+function viewDash(){
+  const t=teamOf(S.teamId);if(!t)return noTeam();
+  const ps=teamPlayers(t.id);const recs=S.records.filter(r=>ps.some(p=>p.id===r.playerId));
+  const last=recs.reduce((m,r)=>r.date>m?r.date:m,'');
+  const latest=teamAvg(t.id,'last'),first=teamAvg(t.id,'first');
+  const ser=[{label:'최근 팀 평균',vals:latest,color:'var(--red)'},{label:'첫 평가 팀 평균',vals:first,color:'var(--blue)',dash:true,fill:.06,w:1.6}];
+  const strong=S.skills.filter(s=>latest[s.id]!=null).sort((a,b)=>latest[b.id]-latest[a.id]);
+  const nSess=S.sessions.filter(s=>s.teamId===t.id).length;
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">팀 현황</div><h1>${esc(t.name)}</h1></div>
+    <button class="btn pri" data-act="tab" data-v="eval">평가하기</button></div>
+    <div class="stats" style="margin-top:12px">
+     <div class="stat"><b>${ps.length}</b><span>선수</span></div>
+     <div class="stat"><b>${nSess}</b><span>평가 세션</span></div>
+     <div class="stat"><b>${f1(ovr(latest))}</b><span>팀 종합 (5점 만점)</span></div>
+     <div class="stat"><b>${last?fmtD(last):'-'}</b><span>최근 평가</span></div>
+    </div></section>`;
+  if(!ps.length)return h+noPlayers();
+  h+=`<div class="grid2"><section class="card"><h2>기능별 팀 평균</h2><p class="sub">선수별로 기능마다 가장 최근 평가값 기준</p>${radar(ser,300)}${legend(ser)}
+    ${strong.length>1?`<div style="margin-top:12px;display:grid;gap:6px"><div class="row"><span class="pill blue">강점</span>${strong.slice(0,2).map(s=>esc(s.name)+' '+f1(latest[s.id])).join(' · ')}</div>
+    <div class="row"><span class="pill red">보완</span>${strong.slice(-2).reverse().map(s=>esc(s.name)+' '+f1(latest[s.id])).join(' · ')}</div></div>`:''}</section>
+   <section class="card"><h2>선수별 최근 점수</h2><p class="sub">행을 누르면 선수 분석으로 이동합니다. 변화는 직전 평가 대비 기능 평균입니다.</p>
+   <div class="scroll"><table><thead><tr><th class="l">선수</th>${S.skills.map(s=>`<th title="${esc(s.name)}">${esc(s.short||s.name)}</th>`).join('')}<th>종합</th><th>변화</th></tr></thead><tbody>
+   ${ps.map(p=>{const pr=profile(p.id,'last');
+     return `<tr class="click" data-act="goplayer" data-v="${p.id}"><td class="l"><b>${esc(p.name)}</b> <span class="sub">${esc(p.position||'')}</span></td>
+     ${S.skills.map(s=>`<td><span class="heat ${heatCls(pr[s.id])}">${f1(pr[s.id])}</span></td>`).join('')}
+     <td class="num"><b>${f1(ovr(pr))}</b></td><td>${delta(profDelta(p.id,'prev'))}</td></tr>`}).join('')}
+   </tbody></table></div></section></div>`;
+  const notes=S.notes.filter(n=>ps.some(p=>p.id===n.playerId)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+  h+=`<div class="grid2"><section class="card"><h2>최근 특이사항</h2>${notes.length?`<div class="list">${notes.map(n=>`<div class="li"><span class="date">${fmtD(n.date)}</span><div class="grow"><b>${esc(playerOf(n.playerId)?.name)}</b> <span class="pill ${n.cat==='부상·통증'?'red':''}">${esc(n.cat)}</span><div>${esc(n.text)}</div></div></div>`).join('')}</div>`:'<p class="sub">아직 입력된 특이사항이 없습니다. 선수 분석 화면에서 추가할 수 있습니다.</p>'}</section>
+   <section class="card"><h2>최근 평가 세션</h2>${sessList(S.sessions.filter(s=>s.teamId===t.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5),true)}</section></div>`;
+  return h}
+
+const SHEETS=['A','B','C','D','E','F'];
+const byPos=(a,b)=>(POS.indexOf(a.position)-POS.indexOf(b.position))||a.name.localeCompare(b.name,'ko');
+function sessPlayers(sess){const ids=sess.playerIds;return (ids&&ids.length?ids.map(playerOf).filter(Boolean):teamPlayers(sess.teamId)).sort(byPos)}
+function sessProgress(sess){let d=0,t=0;sessPlayers(sess).forEach(p=>{const g=progress(sess,p.id);d+=g.done;t+=g.tot});return {done:d,tot:t,pct:t?Math.round(d/t*100):0}}
+function sessTitle(s){return s.title||(s.sheet?`시트 ${s.sheet} 평가`:'평가')}
+const houseIco=`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="10" fill="var(--blue)"/><circle cx="11" cy="11" r="6.8" fill="var(--card)"/><circle cx="11" cy="11" r="4" fill="var(--red)"/><circle cx="11" cy="11" r="1.4" fill="var(--card)"/></svg>`;
+
+function sessList(list,compact){
+  if(!list.length)return '<p class="sub">아직 평가 세션이 없습니다.</p>';
+  return `<div class="list">${list.map(s=>{const recs=S.records.filter(r=>r.sessionId===s.id);const k='sess:'+s.id;const g=sessProgress(s);
+   return `<div class="li"><span class="date">${fmtD(s.date)}</span><div class="grow">${s.sheet?`<span class="pill blue">시트 ${esc(s.sheet)}</span> `:''}<b>${esc(sessTitle(s))}</b>${s.sample?' <span class="pill">예시</span>':''}
+   <div class="sub">${esc(teamOf(s.teamId)?.name||'')} · 선수 ${sessPlayers(s).length}명 · 항목 ${s.items.length}개 · 진행 ${g.pct}%</div></div>
+   <div class="row"><button class="btn sm pri" data-act="opensess" data-v="${s.id}">열기</button>
+   ${compact?'':`<button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delsess" data-v="${s.id}" ${S.canWrite?'':'disabled'}>${S.confirm===k?`삭제 확인 (기록 ${recs.length}건 포함)`:'삭제'}</button>`}</div></div>`}).join('')}</div>`}
+
+function viewNewSess(){
+  const N=S.newSess;const sel=N.items;
+  const cnt=Object.keys(sel).length;const reps=Object.values(sel).reduce((a,b)=>a+b,0);
+  const tps=teamPlayers(N.teamId);const np=tps.filter(p=>N.playerIds[p.id]).length;
+  const others=S.sessions.filter(s=>s.id!==N.id&&s.date===N.date);
+  const busy=pid=>others.filter(s=>sessPlayers(s).some(p=>p.id===pid)).map(s=>s.sheet?'시트 '+s.sheet:sessTitle(s));
+  const recent=[...S.sessions].filter(s=>s.id!==N.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  let h=`<section class="card" style="display:grid;gap:16px"><div><div class="eyebrow">${N.id?'세션 설정 수정':'새 평가'}</div><h1>${N.id?'평가 설정 수정':'평가 만들기'}</h1></div>
+   <div class="row" style="align-items:flex-end">
+    <label class="f">평가 날짜<input type="date" id="nsDate" data-f="nsdate" value="${N.date}"></label>
+    <label class="f" style="flex:1;min-width:200px">세션 이름 (선택)<input type="text" id="nsTitle" data-f="nstitle" value="${esc(N.title)}" placeholder="예: 드로우 집중 평가"></label></div>
+   <div style="display:grid;gap:8px"><span class="flabel">① 시트</span><div class="row">${SHEETS.map(sh=>{const used=others.filter(s=>s.sheet===sh).map(s=>teamOf(s.teamId)?.name).filter(Boolean);
+     return `<button class="sheetb" data-act="nssheet" data-v="${sh}" aria-pressed="${N.sheet===sh}"><b>${sh}</b><span>${used.length?esc(used.join(', ')):'비어 있음'}</span></button>`}).join('')}
+     <button class="sheetb" data-act="nssheet" data-v="" aria-pressed="${!N.sheet}"><b style="font-size:15px">없음</b><span>시트 미지정</span></button></div></div>
+   <div style="display:grid;gap:8px"><span class="flabel">② 팀</span><div class="row">${S.teams.map(t=>`<button class="chip" data-act="nsteamb" data-v="${t.id}" aria-current="${t.id===N.teamId}">${esc(t.name)}</button>`).join('')}</div></div>
+   <div style="display:grid;gap:8px"><div class="row between"><span class="flabel">③ 선수 <span class="num">${np}/${tps.length}</span>명 선택</span>${tps.length?`<button class="btn sm" data-act="nsallp">${np===tps.length?'모두 해제':'모두 선택'}</button>`:''}</div>
+    ${tps.length?`<div class="pgrid">${tps.map(p=>{const on=!!N.playerIds[p.id];const b=busy(p.id);return `<button class="toggle" data-act="nsp" data-v="${p.id}" aria-pressed="${on}"><span class="box">${on?'✓':''}</span><span><b>${esc(p.name)}</b> <span class="sub">${esc(p.position||'')}</span>${b.length?`<br><span class="sub">오늘 ${esc(b.join(', '))} 배정</span>`:''}</span></button>`}).join('')}</div>`:'<p class="sub" style="margin:0">이 팀에 선수가 없습니다. 설정에서 선수를 등록하세요.</p>'}</div>
+   <div style="display:grid;gap:8px"><div class="row between"><span class="flabel">④ 평가 항목과 횟수</span>
+    ${recent.length?`<select id="nsCopy" data-f="nscopy" aria-label="최근 평가에서 항목 불러오기"><option value="">최근 평가에서 항목 불러오기</option>${recent.map(s=>`<option value="${s.id}">${fmtD(s.date)} ${s.sheet?'시트 '+esc(s.sheet)+' · ':''}${esc(teamOf(s.teamId)?.name||'')} · ${esc(sessTitle(s))}</option>`).join('')}</select>`:''}</div>
+    <p class="sub" style="margin:0">항목마다 오늘 몇 번 평가할지 정하세요. 매 회차를 1~5점으로 매기고 평균이 그 항목 점수가 됩니다.</p></div></section>`;
+  S.skills.forEach(s=>{const all=s.items.every(i=>sel[i.id]!=null);
+    h+=`<section class="card" style="display:grid;gap:8px"><div class="row between"><h2>${esc(s.name)}</h2><button class="btn sm" data-act="nsskill" data-v="${s.id}">${all?'모두 해제':'모두 선택'}</button></div>
+    ${s.items.map(it=>{const on=sel[it.id]!=null;return `<div class="ns-item"><button class="toggle" data-act="nsitem" data-i="${it.id}" aria-pressed="${on}"><span class="box">${on?'✓':''}</span><span><b>${esc(it.name)}</b>${it.criteria?`<br><span class="sub">${esc(it.criteria)}</span>`:''}</span></button>
+      ${on?`<div class="step" aria-label="횟수"><button data-act="nsrep" data-i="${it.id}" data-d="-1" aria-label="횟수 줄이기">−</button><input type="text" inputmode="numeric" id="rep_${it.id}" data-f="nsrepin" data-i="${it.id}" value="${sel[it.id]}"><span class="sub">회</span><button data-act="nsrep" data-i="${it.id}" data-d="1" aria-label="횟수 늘리기">+</button></div>`:'<span></span>'}</div>`}).join('')}</section>`});
+  const ok=cnt&&np&&S.canWrite;
+  h+=`<section class="card"><div class="row between"><span>${N.sheet?`시트 <b>${esc(N.sheet)}</b> · `:''}${esc(teamOf(N.teamId)?.name||'')} · 선수 <b class="num">${np}</b>명 · 항목 <b class="num">${cnt}</b>개 · 1인 <b class="num">${reps}</b>회</span>
+   <div class="row"><button class="btn" data-act="nscancel">취소</button><button class="btn pri" data-act="nssave" ${ok?'':'disabled'}>${N.id?'설정 저장':'평가 시작'}</button></div></div>
+   ${!np?'<p class="sub" style="margin:8px 0 0">선수를 한 명 이상 선택하세요.</p>':!cnt?'<p class="sub" style="margin:8px 0 0">평가 항목을 하나 이상 선택하세요.</p>':''}</section>`;
+  return h}
+
+const KID_LEVEL={1:'아쉬움',2:'조금 아쉬움',3:'보통',4:'잘함',5:'최고'};
+const flagIco=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 15V2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.9 2.5h8.6l-2 3.2 2 3.2H3.9z" fill="currentColor"/></svg>`;
+function shiftDate(d,n){const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+const WD='일월화수목금토';
+function dayLabel(d){if(!d)return '';const x=new Date(d+'T00:00:00');return d.slice(5).replace('-','.')+'('+WD[x.getDay()]+')'}
+function itemDef(id){return S.skills.flatMap(s=>s.items).find(i=>i.id===id)}
+function itemsShort(s){return s.items.map(i=>`${esc(i.name)} ${i.reps}회`).join(' · ')}
+function peekFlag(sess,pid){const id=recId(sess.id,pid);const d=S.drafts[id];if(d&&d.flag!=null)return !!d.flag;return !!S.records.find(r=>r.id===id)?.flag}
+function dateNav(cur,act){
+  const dates=[...new Set(S.sessions.map(s=>s.date))].sort().reverse().slice(0,6);
+  return `<div class="row datenav"><button class="btn sm" data-act="${act}" data-v="${shiftDate(cur,-1)}" aria-label="이전 날짜">◀</button>
+   <input type="date" id="dn_${act}" data-f="${act}" value="${cur}" aria-label="날짜"><button class="btn sm" data-act="${act}" data-v="${shiftDate(cur,1)}" aria-label="다음 날짜">▶</button>
+   ${cur!==today()?`<button class="btn sm" data-act="${act}" data-v="${today()}">오늘</button>`:''}</div>
+   ${dates.length?`<div class="chips" style="margin-top:8px">${dates.map(d=>`<button class="chip" data-act="${act}" data-v="${d}" aria-current="${d===cur}">${dayLabel(d)}</button>`).join('')}</div>`:''}`}
+
+/* ---- 오늘 평가판: 모든 시트를 한 화면에 ---- */
+function viewEval(){
+  if(!S.teams.length)return noTeam();
+  if(S.newSess)return viewNewSess();
+  const D=S.boardDate;const ds=S.sessions.filter(s=>s.date===D).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
+  const used=ds.map(s=>s.sheet);const free=SHEETS.filter(x=>!used.includes(x));
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">오늘 평가판</div><h1>${dayLabel(D)} 평가판</h1></div>
+   <div class="row"><button class="btn sm" data-act="togglecrit" aria-pressed="${!!S.showCrit}">ⓘ 평가 기준</button><button class="btn" data-act="kidon">선수 모드</button></div></div>
+   <div style="margin-top:10px">${dateNav(D,'bdate')}</div>
+   <div class="row" style="margin-top:12px"><span class="sub">시트 추가</span>${free.map(sh=>`<button class="btn sm" data-act="newsess" data-v="${sh}">+ 시트 ${sh}</button>`).join('')}${free.length?'':'<span class="sub">A~F 모두 사용 중</span>'}</div></section>`;
+  if(!ds.length)h+=`<div class="card empty"><h2>이 날짜에 만든 평가판이 없습니다</h2><p>위의 <b>+ 시트</b> 버튼으로 시트별 평가를 만드세요.</p></div>`;
+  if(ds.length>1)h+=`<div class="sb-jump"><span class="sub" style="align-self:center">시트로 이동</span>${ds.map(s=>`<button class="chip" data-act="sbjump" data-v="${s.id}">${esc(s.sheet||'-')} · ${esc(teamOf(s.teamId)?.name||'')}</button>`).join('')}</div>`;
+  if(ds.length)h+=`<div class="sb-wrap" id="sbWrap" data-k="board">${ds.map(sheetBlock).join('')}</div>`;
+  const cs=curSess();
+  if(S.cell&&cs&&cs.date===D&&sessPlayers(cs).some(p=>p.id===S.evalP))h+=`<div class="bsheet" role="dialog" aria-label="점수 입력">${scorePad(cs,false)}
+   <div class="row between"><button class="btn sm" data-act="padclear">지우기</button><div class="row"><button class="btn sm" data-act="cellmove" data-v="-1">‹ 이전 칸</button><button class="btn sm" data-act="cellmove" data-v="1">다음 칸 ›</button><button class="btn sm pri" data-act="cellclose">닫기</button></div></div></div>`;
+  return h}
+function sheetHead(sess,tools){const g=sessProgress(sess);const k='sess:'+sess.id;
+  return `<div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div style="min-width:0"><b class="sb-team">${esc(teamOf(sess.teamId)?.name||'')}</b>${sess.title?` <span class="sub">${esc(sess.title)}</span>`:''}
+    <div class="sub num">${tools?`진행 ${g.pct}% · ${g.done}/${g.tot}`:dayLabel(sess.date)}</div></div></div>
+   ${tools?`<div class="row"><button class="btn sm" data-act="editsess" data-v="${sess.id}">설정</button><button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delsess" data-v="${sess.id}">${S.confirm===k?'삭제 확인':'삭제'}</button></div>`:''}</div>`}
+function sheetBlock(sess){
+  return `<section class="card sheet-block" id="sb_${sess.id}">${sheetHead(sess,true)}
+   ${S.showCrit?`<div class="crit" style="margin:0 14px 10px">${sess.items.map(it=>`<div><b>${esc(it.name)}</b> <span class="sub">${esc(itemDef(it.itemId)?.criteria||'')}</span></div>`).join('')}</div>`:''}
+   ${sheetGrid(sess,'input')}</section>`}
+function sheetGrid(sess,mode){
+  const ps=sessPlayers(sess);if(!ps.length)return '<p class="sub" style="padding:0 14px 14px">선수가 없습니다.</p>';
+  const inp=mode==='input';
+  return `<div class="scroll"><table class="grid"><thead><tr><th class="l stick">선수</th>${sess.items.map(it=>`<th><span class="ih">${esc(it.name)}</span><span class="sub num">${it.reps}회</span></th>`).join('')}<th>평균</th></tr></thead><tbody>
+  ${ps.map(p=>{const at=peekAttempts(sess,p.id);const fl=peekFlag(sess,p.id);const all=[];
+    const cells=sess.items.map((it,i)=>{const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);const av=avg(a);if(av!=null)all.push(av);
+      if(!inp)return `<td><span class="heat ${heatCls(av)}">${f1(av)}</span></td>`;
+      const cur=S.cell&&S.sessId===sess.id&&S.evalP===p.id&&S.evalItem===i;
+      return `<td><button class="cell ${cur?'cur':''} ${a.every(v=>v!=null)?'full':''}" data-act="cell" data-s="${sess.id}" data-p="${p.id}" data-v="${i}" aria-label="${esc(p.name)} ${esc(it.name)} ${f1(av)}"><span class="dots">${a.map(v=>`<i class="${v!=null?'on':''}"></i>`).join('')}</span><span class="num">${f1(av)}</span></button></td>`}).join('');
+    const nameCell=inp?`<div class="pn"><button class="flag ${fl?'on':''}" data-act="flag" data-s="${sess.id}" data-p="${p.id}" aria-pressed="${fl}" title="나중에 메모할 선수 표시" aria-label="${esc(p.name)} 메모 표시">${flagIco}</button><span><b>${esc(p.name)}</b><br><span class="sub">${esc(p.position||'')}</span></span></div>`
+      :`<button class="namebtn" data-act="resp" data-s="${sess.id}" data-v="${p.id}"><b>${esc(p.name)}</b><span class="sub">${esc(p.position||'')} ›</span></button>`;
+    return `<tr><td class="l stick">${nameCell}</td>${cells}<td><span class="heat ${heatCls(avg(all))}">${f1(avg(all))}</span></td></tr>`}).join('')}
+  </tbody></table></div>`}
+
+/* ---- 순위·선발 ---- */
+const RKEY='curling.rank.v1';
+function rankState(){if(!S.rank){let o=null;try{o=JSON.parse(lsGet(RKEY)||'null')}catch(e){}S.rank=Object.assign({sess:{},w:{},team:'all',pos:'all',top:4,full:false,mode:'pick'},o||{})}return S.rank}
+function saveRank(){lsSet(RKEY,JSON.stringify(S.rank))}
+function rankSessions(R){return S.sessions.filter(s=>R.team==='all'||s.teamId===R.team).sort((a,b)=>b.date.localeCompare(a.date)||(a.sheet||'').localeCompare(b.sheet||''))}
+function rankItems(R){const m=new Map();rankSessions(R).filter(s=>R.sess[s.id]).forEach(s=>s.items.forEach(it=>{if(!m.has(it.itemId))m.set(it.itemId,{id:it.itemId,name:it.name,skill:it.skillName||'',n:0});m.get(it.itemId).n++}));
+  const order=S.skills.flatMap(s=>s.items.map(i=>i.id));return [...m.values()].sort((a,b)=>{const x=order.indexOf(a.id),y=order.indexOf(b.id);return (x<0?999:x)-(y<0?999:y)})}
+const wOf=(R,id)=>R.w[id]==null?1:R.w[id];
+function computeRank(R){
+  const sids=new Set(rankSessions(R).filter(s=>R.sess[s.id]).map(s=>s.id));
+  const items=rankItems(R).filter(i=>wOf(R,i.id)>0);
+  let ps=(R.team==='all'?S.players:S.players.filter(p=>p.teamId===R.team)).filter(p=>R.pos==='all'||p.position===R.pos);
+  const rows=ps.map(p=>{const recs=S.records.filter(r=>r.playerId===p.id&&sids.has(r.sessionId));
+    const per={};let ws=0,wt=0,have=0;
+    items.forEach(it=>{const v=avg(recs.map(r=>r.scores&&r.scores[it.id]));per[it.id]=v;if(v!=null){have++;ws+=wOf(R,it.id)*v;wt+=wOf(R,it.id)}});
+    return {p,per,total:wt?ws/wt:null,have,need:items.length,n:recs.length}});
+  const ok=rows.filter(r=>r.total!=null&&(!R.full||r.have===r.need)).sort((a,b)=>b.total-a.total||b.have-a.have||a.p.name.localeCompare(b.p.name,'ko'));
+  let prev=null,rank=0;ok.forEach((r,i)=>{const t=Math.round(r.total*100);if(t!==prev){rank=i+1;prev=t}r.rank=rank});
+  const out=rows.filter(r=>!ok.includes(r));
+  return {items,ok,out,nSess:sids.size}}
+function viewRank(){
+  if(!S.teams.length)return noTeam();
+  const R=rankState();const list=rankSessions(R);const its=rankItems(R);const res=computeRank(R);
+  const nSel=list.filter(s=>R.sess[s.id]).length;
+  const crit=`<section class="card rank-crit" style="display:grid;gap:14px"><div><div class="eyebrow">순위·선발</div><h1>선발 순위</h1>
+    <p class="sub" style="margin:4px 0 0">반영할 평가와 항목을 고르면 선수별 평균으로 순위를 매깁니다. 고른 조건은 이 기기에 저장됩니다.</p></div>
+   <div class="row" style="align-items:flex-end">
+    <label class="f">팀<select id="rkTeam" data-f="rkteam"><option value="all">전체 팀</option>${S.teams.map(t=>`<option value="${t.id}" ${R.team===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label>
+    <label class="f">포지션<select id="rkPos" data-f="rkpos"><option value="all">전체</option>${POS.map(x=>`<option ${R.pos===x?'selected':''}>${x}</option>`).join('')}</select></label>
+    <label class="f">선발 인원<input type="text" inputmode="numeric" id="rkTop" data-f="rktop" value="${R.top}" style="width:70px"></label></div>
+   <div style="display:grid;gap:8px"><div class="row between"><span class="flabel">① 반영할 평가 <span class="num">${nSel}</span>개</span>
+     <div class="row"><button class="btn sm" data-act="rksel" data-v="4w">최근 4주</button><button class="btn sm" data-act="rksel" data-v="all">전체</button><button class="btn sm" data-act="rksel" data-v="none">해제</button></div></div>
+    ${list.length?`<div class="rk-list">${list.map(s=>{const on=!!R.sess[s.id];return `<button class="toggle" data-act="rkses" data-v="${s.id}" aria-pressed="${on}"><span class="box">${on?'✓':''}</span><span><b class="num">${dayLabel(s.date)}</b> ${s.sheet?'시트 '+esc(s.sheet)+' · ':''}${esc(teamOf(s.teamId)?.name||'')}<br><span class="sub">${esc(s.title?s.title+' · ':'')}${itemsShort(s)}</span></span></button>`}).join('')}</div>`:'<p class="sub" style="margin:0">아직 평가가 없습니다.</p>'}</div>
+   <div style="display:grid;gap:8px"><span class="flabel">② 반영할 항목과 비중</span>
+    ${its.length?its.map(it=>{const w=wOf(R,it.id);return `<div class="rk-item ${w?'':'off'}"><button class="toggle" data-act="rkitem" data-v="${it.id}" aria-pressed="${w>0}"><span class="box">${w?'✓':''}</span><span><b>${esc(it.name)}</b> <span class="sub">${esc(it.skill)}</span></span></button>
+      ${w?`<div class="seg" role="group" aria-label="비중">${[1,2,3].map(x=>`<button data-act="rkw" data-v="${it.id}" data-w="${x}" aria-pressed="${w===x}">×${x}</button>`).join('')}</div>`:'<span></span>'}</div>`}).join(''):'<p class="sub" style="margin:0">먼저 반영할 평가를 고르세요.</p>'}</div>
+   <label class="row" style="gap:8px;cursor:pointer"><input type="checkbox" id="rkFull" data-f="rkfull" ${R.full?'checked':''}> 고른 항목을 모두 평가받은 선수만 순위에 넣기</label></section>`;
+  let tbl;
+  if(!res.items.length||!res.nSess)tbl=`<div class="card empty"><h2>조건을 골라 주세요</h2><p>반영할 평가와 항목을 하나 이상 고르면 순위가 나옵니다.</p></div>`;
+  else{const top=Math.max(0,parseInt(R.top,10)||0);
+    tbl=`<section class="card" style="padding:0;overflow:hidden"><div class="sb-head"><div><b class="sb-team">순위표</b><div class="sub">평가 ${res.nSess}개 · 항목 ${res.items.length}개 · ${R.team==='all'?'전체 팀':esc(teamOf(R.team)?.name||'')}${R.pos!=='all'?' · '+esc(R.pos):''}${top?` · 상위 ${top}명 선발`:''}</div></div>
+     <button class="btn sm" data-act="rkcopy">표 복사</button></div>
+     <div class="scroll"><table class="grid rank-tbl"><thead><tr><th>순위</th><th class="l stick">선수</th><th>종합</th>${res.items.map(it=>`<th><span class="ih">${esc(it.name)}</span>${wOf(R,it.id)>1?`<span class="sub">×${wOf(R,it.id)}</span>`:''}</th>`).join('')}<th>평가 수</th></tr></thead><tbody>
+     ${res.ok.map((r,i)=>{const sel=top&&r.rank<=top;return `<tr class="${sel?'picked':''} ${top&&i===top-1?'cutline':''}"><td><span class="rk ${r.rank<=3?'r'+r.rank:''}">${r.rank}</span></td>
+       <td class="l stick"><button class="namebtn" data-act="goplayer" data-v="${r.p.id}"><b>${esc(r.p.name)}</b><span class="sub">${esc(teamOf(r.p.teamId)?.name||'')} · ${esc(r.p.position||'')}</span></button>${sel?' <span class="pill red">선발</span>':''}</td>
+       <td><b class="num tot">${f1(r.total)}</b>${r.have<r.need?`<div class="sub">${r.have}/${r.need}항목</div>`:''}</td>
+       ${res.items.map(it=>`<td><span class="heat ${heatCls(r.per[it.id])}">${f1(r.per[it.id])}</span></td>`).join('')}<td class="num">${r.n}</td></tr>`}).join('')}
+     ${res.out.length?`<tr><td colspan="${res.items.length+4}" class="l sub" style="background:var(--bg)">순위 제외 ${res.out.length}명: ${res.out.map(r=>esc(r.p.name)+(r.total==null?' (기록 없음)':` (${r.have}/${r.need}항목)`)).join(', ')}</td></tr>`:''}
+     </tbody></table></div></section>`}
+  return `<div class="rank-wrap">${crit}<div style="display:grid;gap:16px;min-width:0">${tbl}</div></div>`}
+function rankTSV(){const R=rankState();const res=computeRank(R);const top=parseInt(R.top,10)||0;
+  const head=['순위','선수','팀','포지션','종합',...res.items.map(i=>i.name+(wOf(R,i.id)>1?' ×'+wOf(R,i.id):'')),'평가 수','선발'];
+  const rows=res.ok.map(r=>[r.rank,r.p.name,teamOf(r.p.teamId)?.name||'',r.p.position||'',f1(r.total),...res.items.map(i=>f1(r.per[i.id])),r.n,top&&r.rank<=top?'선발':'']);
+  return [head,...rows].map(a=>a.join('\t')).join('\n')}
+
+/* ---- 결과 보기 ---- */
+function viewResult(kid){
+  if(S.resP&&playerOf(S.resP))return resultPlayer(kid);
+  const D=S.resDate;const ds=S.sessions.filter(s=>s.date===D).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
+  let h=`<section class="card"><div class="eyebrow">결과 보기</div><h1>${dayLabel(D)} 결과</h1>
+   <p class="sub" style="margin:4px 0 0">${kid?'내 이름을 누르면 자세한 기록과 지난번보다 얼마나 늘었는지 볼 수 있어요.':'이름을 누르면 회차별 점수와 기능별 변화를 볼 수 있습니다.'}</p>
+   <div style="margin-top:10px">${dateNav(D,'rdate')}</div>
+   ${!kid&&ds.length?(()=>{const k='resday:'+D;const nr=S.records.filter(r=>ds.some(x=>x.id===r.sessionId)).length;return `<div class="row" style="margin-top:12px"><button class="btn danger ${S.confirm===k?'armed':''}" data-act="delresday">${S.confirm===k?`정말 삭제 (평가 ${ds.length}개 · 기록 ${nr}건)`:`${dayLabel(D)} 평가 모두 삭제`}</button>${S.confirm===k?'<span class="sub">한 번 더 누르면 지워지고 되돌릴 수 없습니다. 특이사항은 남습니다.</span>':''}</div>`})():''}</section>`;
+  if(!ds.length)return h+`<div class="card empty"><h2>이 날짜에는 결과가 없어요</h2><p>날짜를 바꿔 보세요.</p></div>`;
+  h+=`<div class="sb-wrap" id="sbWrap" data-k="result">${ds.map(s=>{const k='ress:'+s.id;return `<section class="card sheet-block" id="sb_${s.id}">${sheetHead(s,false)}${kid?'':`<div class="row" style="padding:8px 14px 0;justify-content:flex-end"><button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delressess" data-v="${s.id}">${S.confirm===k?'삭제 확인':'이 시트 평가 삭제'}</button></div>`}${sheetGrid(s,'result')}</section>`}).join('')}</div>`;
+  return h}
+function resultPlayer(kid){
+  const p=playerOf(S.resP);const sess=sessOf(S.resS);
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">${esc(teamOf(p.teamId)?.name||'')} · ${esc(p.position||'')}</div><h1 class="kidname">${esc(p.name)}</h1></div><button class="btn" data-act="resback">← 결과 목록</button></div></section>`;
+  if(sess){const at=peekAttempts(sess,p.id);const ov=avg(sess.items.map(it=>avg(at[it.itemId]||[])));
+    h+=`<section class="card"><div class="row between"><h2>${dayLabel(sess.date)}${sess.sheet?' · 시트 '+esc(sess.sheet):''} 기록</h2><span class="kid-done"><span class="big num" style="font-size:30px">${f1(ov)}</span><span class="sub"> / 5</span></span></div>
+     <div class="list" style="margin-top:6px">${sess.items.map(it=>{const a=(at[it.itemId]||[]).slice(0,it.reps);const v=avg(a);const pv=prevItemScore(sess,p.id,it.itemId);
+       return `<div class="li"><div class="grow"><b>${esc(it.name)}</b><div class="sub num">${a.length?a.map(x=>x??'·').join('  '):'아직 기록 없음'}</div></div><span class="heat ${heatCls(v)}">${f1(v)}</span><span style="min-width:60px;text-align:right">${pv!=null&&v!=null?delta(v-pv):'<span class="sub">첫 기록</span>'}</span></div>`}).join('')}</div>
+     <p class="sub" style="margin:8px 0 0">오른쪽은 지난번 같은 항목과 비교한 변화예요.</p></section>`}
+  return h+kidMine(p)}
+
+/* ---- 시트 점수표 (선수 × 항목) ---- */
+function viewSession(sess){
+  const ps=sessPlayers(sess);const g=sessProgress(sess);const k='sess:'+sess.id;
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">${dayLabel(sess.date)} · ${esc(teamOf(sess.teamId)?.name||'')}</div>
+   <h1>${sess.sheet?`<span class="sheet-tag">${esc(sess.sheet)}</span>`:''}${esc(sessTitle(sess))}</h1>
+   <p class="sub" style="margin:4px 0 0">${itemsShort(sess)} · 진행 <span class="num">${g.pct}%</span></p></div>
+   <div class="row"><button class="btn sm" data-act="closesess">← 평가판</button><button class="btn sm" data-act="togglecrit" aria-pressed="${!!S.showCrit}">ⓘ 평가 기준</button><button class="btn sm" data-act="editsess">설정 수정</button>
+   <button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delsess" data-v="${sess.id}">${S.confirm===k?'삭제 확인':'삭제'}</button></div></div>
+   ${S.showCrit?`<div class="crit">${sess.items.map(it=>`<div><b>${esc(it.name)}</b> <span class="sub">${esc(itemDef(it.itemId)?.criteria||'')}</span></div>`).join('')}</div>`:''}</section>`;
+  if(!ps.length)return h+noPlayers();
+  h+=`<section class="card" style="padding:0;overflow:hidden"><div class="scroll"><table class="grid"><thead><tr><th class="l stick">선수</th>${sess.items.map(it=>`<th><span class="ih">${esc(it.name)}</span><span class="sub num">${it.reps}회</span></th>`).join('')}<th>평균</th></tr></thead><tbody>
+  ${ps.map(p=>{const at=peekAttempts(sess,p.id);const fl=peekFlag(sess,p.id);const all=[];
+    const cells=sess.items.map((it,i)=>{const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);const av=avg(a);if(av!=null)all.push(av);const cur=S.cell&&S.evalP===p.id&&S.evalItem===i;
+      return `<td><button class="cell ${cur?'cur':''} ${a.every(v=>v!=null)?'full':''}" data-act="cell" data-p="${p.id}" data-v="${i}" aria-label="${esc(p.name)} ${esc(it.name)} ${f1(av)}"><span class="dots">${a.map(v=>`<i class="${v!=null?'on':''}"></i>`).join('')}</span><span class="num">${f1(av)}</span></button></td>`}).join('');
+    return `<tr><td class="l stick"><div class="pn"><button class="flag ${fl?'on':''}" data-act="flag" data-p="${p.id}" aria-pressed="${fl}" title="나중에 메모할 선수 표시" aria-label="${esc(p.name)} 메모 표시">${flagIco}</button><span><b>${esc(p.name)}</b><br><span class="sub">${esc(p.position||'')}</span></span></div></td>${cells}<td><span class="heat ${heatCls(avg(all))}">${f1(avg(all))}</span></td></tr>`}).join('')}
+  </tbody></table></div></section>
+  <p class="sub" style="margin:0">칸을 누르면 점수판이 열립니다. 깃발은 '기록 정리'에서 나중에 메모할 선수 표시입니다.</p>`;
+  if(S.cell&&ps.some(p=>p.id===S.evalP))h+=`<div class="bsheet" role="dialog" aria-label="점수 입력">${scorePad(sess,false)}
+   <div class="row between"><button class="btn sm" data-act="padclear">지우기</button><div class="row"><button class="btn sm" data-act="cellmove" data-v="-1">‹ 이전 칸</button><button class="btn sm" data-act="cellmove" data-v="1">다음 칸 ›</button><button class="btn sm pri" data-act="cellclose">닫기</button></div></div></div>`;
+  return h}
+function scorePad(sess,kid){
+  const p=playerOf(S.evalP);const d=getDraft(sess,S.evalP);if(S.evalItem>=sess.items.length)S.evalItem=0;const it=sess.items[S.evalItem];const a=d.attempts[it.itemId];
+  const target=S.slot!=null?S.slot:a.findIndex(v=>v==null);const L=kid?KID_LEVEL:LEVEL;
+  return `<div class="pad-wrap ${kid?'kid':''}"><div class="row between"><div>${kid?'':`<div class="eyebrow">${esc(p?.name||'')} · ${S.evalItem+1}/${sess.items.length}</div>`}<h2>${esc(it.name)}</h2></div><span>평균 <b class="num" style="font-size:20px">${f1(avg(a))}</b></span></div>
+   <div class="slots">${a.map((v,i)=>`<button class="slot ${v!=null?'f':''} ${i===target?'sel':''}" data-act="slot" data-v="${i}" aria-label="${i+1}회차 ${v??'미입력'}">${v??''}<small>${i+1}</small></button>`).join('')}</div>
+   <div class="pad">${[1,2,3,4,5].map(n=>`<button class="padb" data-act="pad" data-v="${n}" ${target<0?'disabled':''}><b>${n}</b><span>${L[n]}</span></button>`).join('')}</div>
+   ${target<0?`<p class="sub" style="margin:0">${kid?'이 항목은 다 했어요. 고칠 회차를 누르거나 다른 항목을 골라요.':'모두 입력했습니다. 고칠 회차를 누르세요.'}</p>`:''}</div>`}
+
+/* ---- 기록 정리 (메모·특이사항) ---- */
+function viewMemo(){
+  if(!S.teams.length)return noTeam();
+  const D=S.memoDate;const ds=S.sessions.filter(s=>s.date===D).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
+  let h=`<section class="card"><div class="eyebrow">기록 정리</div><h1>${dayLabel(D)} 메모·특이사항</h1>
+   <p class="sub" style="margin:4px 0 0">평가 중 깃발로 표시한 선수가 먼저 나옵니다. 메모는 입력하면 자동 저장됩니다.</p>
+   <div style="margin-top:10px">${dateNav(D,'mdate')}</div>
+   <label class="row" style="margin-top:10px;gap:8px;cursor:pointer"><input type="checkbox" id="mFlag" data-f="mflag" ${S.memoFlagOnly?'checked':''}> 깃발 표시한 선수만 보기</label></section>`;
+  if(!ds.length)return h+`<div class="card empty"><h2>이 날짜에는 평가가 없습니다</h2><p>날짜를 바꾸거나 평가판에서 평가를 만들어 주세요.</p></div>`;
+  ds.forEach(s=>{let rows=sessPlayers(s).map(p=>({p,fl:peekFlag(s,p.id)}));rows.sort((a,b)=>(b.fl?1:0)-(a.fl?1:0));if(S.memoFlagOnly)rows=rows.filter(x=>x.fl);
+    h+=`<section class="card" style="display:grid;gap:2px"><h2>${s.sheet?`<span class="sheet-tag sm">${esc(s.sheet)}</span>`:''}${esc(teamOf(s.teamId)?.name||'')} · ${esc(sessTitle(s))}</h2>
+    ${rows.length?rows.map(({p,fl})=>{const id=recId(s.id,p.id);const memo=S.drafts[id]?.memo??S.records.find(r=>r.id===id)?.memo??'';const at=peekAttempts(s,p.id);
+      const ov=avg(s.items.map(it=>avg(at[it.itemId]||[])));const notes=S.notes.filter(n=>n.playerId===p.id&&n.date===D);const nk='mn_'+s.id+'_'+p.id;
+      const open=fl||memo||notes.length||S.memoOpen===id;
+      if(!open)return `<div class="memo-row closed"><div class="pn"><button class="flag" data-act="flag" data-s="${s.id}" data-p="${p.id}" aria-pressed="false" aria-label="${esc(p.name)} 메모 표시">${flagIco}</button><b>${esc(p.name)}</b> <span class="sub">${esc(p.position||'')} · 오늘 평균 ${f1(ov)}</span><button class="btn sm" style="margin-left:auto" data-act="memoopen" data-v="${id}">메모 쓰기</button></div></div>`;
+      return `<div class="memo-row"><div class="pn"><button class="flag ${fl?'on':''}" data-act="flag" data-s="${s.id}" data-p="${p.id}" aria-pressed="${fl}" aria-label="${esc(p.name)} 메모 표시">${flagIco}</button><b>${esc(p.name)}</b> <span class="sub">${esc(p.position||'')} · 오늘 평균 ${f1(ov)}</span></div>
+       <textarea id="rm_${id}" data-f="rmemo" data-s="${s.id}" data-p="${p.id}" placeholder="평가 메모 (예: 인턴에서 회전 부족)">${esc(memo)}</textarea>
+       <div class="row"><select id="${nk}_c" aria-label="특이사항 분류">${NOTE_CAT.map(c=>`<option>${c}</option>`).join('')}</select><input type="text" id="${nk}_t" placeholder="특이사항 (부상, 컨디션 등)" style="flex:1;min-width:160px"><button class="btn sm" data-act="mnote" data-v="${nk}" data-p="${p.id}">특이사항 추가</button></div>
+       ${notes.length?`<div class="list">${notes.map(n=>`<div class="li"><span class="pill ${n.cat==='부상·통증'?'red':''}">${esc(n.cat)}</span><div class="grow">${esc(n.text)}</div></div>`).join('')}</div>`:''}</div>`}).join(''):'<p class="sub">깃발 표시한 선수가 없습니다.</p>'}</section>`});
+  return h}
+
+/* ---- 선수 모드 ---- */
+function kidHeader(){return `<header class="top kidtop"><div class="top-in"><div class="brand">${houseIco}선수 기록</div><span class="sync" id="syncSt" data-err="${S.syncErr?'1':''}">${syncText()}</span>
+  <nav class="tabs"><button class="tab" data-act="kidpage" data-v="enter" aria-current="${S.kid.page!=='result'}">기록하기</button><button class="tab" data-act="kidpage" data-v="result" aria-current="${S.kid.page==='result'}">결과 보기</button></nav>
+  <div class="teamsel"><button class="btn sm" data-act="kidexit">코치 화면</button></div></div></header>`}
+function prevItemScore(sess,pid,itemId){const rs=playerRecs(pid).filter(r=>r.sessionId!==sess.id&&r.date<=sess.date&&r.scores&&r.scores[itemId]!=null);return rs.length?rs[rs.length-1].scores[itemId]:null}
+function viewKid(){
+  const K=S.kid;
+  if(K.exit)return `<section class="card" style="max-width:420px;margin:24px auto;display:grid;gap:12px"><h2>코치 화면으로 돌아가기</h2><p class="sub" style="margin:0">코치 PIN을 입력하세요.</p>
+    <form id="kidExitForm" class="row"><input type="password" id="kxPin" inputmode="numeric" style="font-size:20px;flex:1;min-width:0" aria-label="코치 PIN"><button class="btn pri" type="submit">확인</button></form>
+    ${K.exitMsg?`<p class="down" style="margin:0" role="alert">${esc(K.exitMsg)}</p>`:''}<div><button class="btn sm" data-act="kidexitcancel">취소</button></div></section>`;
+  if(K.page==='result')return viewResult(true);
+  const td=today();const ds=S.sessions.filter(s=>s.date===td).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
+  if(!ds.length)return `<div class="card empty"><h2>오늘 만들어진 평가가 없어요</h2><p>코치 선생님께 말씀해 주세요.</p></div>`;
+  let cur=sessOf(S.kidSheetId);if(!cur||cur.date!==td)cur=ds[0];
+  return `<section class="card kid-hello"><h1>내 이름 아래 숫자를 눌러요</h1>
+    <p class="sub" style="margin:4px 0 0">${dayLabel(td)} · 숫자를 한 번 누르면 1회 기록돼요. 잘못 눌렀으면 ↺ 지우기를 누르세요.</p>
+    ${ds.length>1?`<div class="chips" style="margin-top:10px">${ds.map(s=>{const g=sessProgress(s);return `<button class="chip ksheet" data-act="kidsheet" data-v="${s.id}" aria-current="${s.id===cur.id}"><b>시트 ${esc(s.sheet||'-')}</b> ${esc(teamOf(s.teamId)?.name||'')} <span class="num">${g.pct}%</span></button>`}).join('')}</div>`:''}</section>
+   ${kidBoard(cur)}`}
+function kidBoard(sess){
+  const ps=sessPlayers(sess);if(!ps.length)return `<div class="card empty"><h2>이 시트에 선수가 없어요</h2></div>`;
+  const g=sessProgress(sess);
+  return `<section class="card kboard"><div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(teamOf(sess.teamId)?.name||'')}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div>${ps.length>8?'<span class="sub">옆으로 밀면 다른 친구가 보여요 →</span>':''}</div>
+   <div class="scroll" id="kbScroll" data-k="${sess.id}"><table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const ov=avg(sess.items.map(it=>avg((at[it.itemId]||[]).slice(0,it.reps))));
+      return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${esc(p.position||'')}</div><span class="heat ${heatCls(ov)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
+   <tbody>${sess.items.map(it=>`<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회</span></td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`).join('')}</tbody></table></div></section>`}
+function kidCell(sess,p,it){
+  const at=peekAttempts(sess,p.id);const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);
+  const n=a.filter(x=>x!=null).length,full=n===it.reps,v=avg(a);const hit=S.kidHit===sess.id+'|'+p.id+'|'+it.itemId;
+  const at2=`data-s="${sess.id}" data-p="${p.id}" data-i="${it.itemId}"`;
+  return `<td class="kc ${hit?'hit':''} ${full?'full':''}"><div class="kcn">${esc(p.name)}</div><div class="sub num">${n}/${it.reps}${v!=null?` · <b style="color:var(--ink)">${f1(v)}</b>`:''}</div>
+   <div class="dots kd2">${a.map(x=>`<i class="${x!=null?'on':''}">${x??''}</i>`).join('')}</div>
+   ${full?`<div class="kdone"><span class="up">완료 ✓</span><button class="btn sm" data-act="kqu" ${at2} aria-label="${esc(p.name)} ${esc(it.name)} 마지막 점수 지우기">↺ 고치기</button></div>`
+     :`<div class="kvpad">${[5,4,3,2,1].map(k=>`<button data-act="kq" ${at2} data-v="${k}" aria-label="${esc(p.name)} ${esc(it.name)} ${k}점"><b>${k}</b><span>${KID_LEVEL[k]}</span></button>`).join('')}
+      <button class="kundo" data-act="kqu" ${at2} ${n?'':'disabled'} aria-label="${esc(p.name)} ${esc(it.name)} 마지막 점수 지우기">↺ 지우기</button></div>`}</td>`}
+function kidMine(p){
+  const last=profile(p.id,'last'),prev=profile(p.id,'prev');const rs=playerRecs(p.id).slice(-5).reverse();
+  return `<section class="card" style="display:grid;gap:10px"><h2>나의 기능별 점수</h2><p class="sub" style="margin:0">파란 막대는 최근 점수, 빨간 선은 지난번 점수예요. (5점 만점)</p>
+   ${S.skills.map(s=>{const v=last[s.id],pv=prev[s.id];return `<div class="kbar"><span>${esc(s.short||s.name)}</span><span class="track">${v!=null?`<i style="width:${v/5*100}%"></i>`:''}${pv!=null?`<b class="pm" style="left:calc(${pv/5*100}% - 1.5px)"></b>`:''}</span><span class="num">${f1(v)}</span></div>`}).join('')}</section>
+   <section class="card"><h2>최근 기록</h2>${rs.length?`<div class="list">${rs.map(r=>{const s=sessOf(r.sessionId);return `<button class="li rowbtn" data-act="resp" data-s="${r.sessionId}" data-v="${p.id}"><span class="date">${dayLabel(r.date)}</span><span class="grow">${s?(s.sheet?'시트 '+esc(s.sheet)+' · ':'')+esc(sessTitle(s))+' · 항목 '+s.items.length+'개':''}</span><span class="heat ${heatCls(recOverall(r))}">${f1(recOverall(r))}</span></button>`}).join('')}</div>`:'<p class="sub">아직 기록이 없어요.</p>'}</section>`}
+
+function viewPlayer(){
+  if(!S.teams.length)return noTeam();
+  const ps=teamPlayers(S.teamId);if(!ps.length)return noPlayers();
+  if(!ps.some(p=>p.id===S.playerId))S.playerId=ps[0].id;
+  const p=playerOf(S.playerId);const rs=playerRecs(p.id);
+  const last=profile(p.id,'last'),prev=profile(p.id,'prev'),first=profile(p.id,'first');
+  const tavg=teamAvg(S.teamId,'last');
+  const ser=[{label:'최근',vals:last,color:'var(--red)'},{label:'직전',vals:prev,color:'var(--blue)',fill:.08},{label:'팀 평균',vals:tavg,color:'var(--muted)',dash:true,fill:0,w:1.4}];
+  let h=`<section class="card"><div class="row between"><div><div class="eyebrow">선수 분석</div><h1>${esc(p.name)} <span class="sub" style="font-family:var(--f-body)">${esc(p.position||'')} · ${esc(teamOf(p.teamId)?.name||'')}</span></h1></div>
+   <div class="row"><select id="pSel" data-f="player">${ps.map(x=>`<option value="${x.id}" ${x.id===p.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div></div>
+   <div class="stats" style="margin-top:12px"><div class="stat"><b>${rs.length}</b><span>평가 횟수</span></div><div class="stat"><b>${f1(ovr(last))}</b><span>최근 종합</span></div>
+   <div class="stat"><b>${delta(profDelta(p.id,'prev'))}</b><span>직전 대비</span></div><div class="stat"><b>${delta(profDelta(p.id,'first'))}</b><span>첫 평가 대비</span></div></div></section>`;
+  if(!rs.length)h+=`<div class="card empty"><h2>아직 평가 기록이 없습니다</h2><p>평가하기에서 이 선수를 평가하면 기능별 변화가 여기에 나타납니다.</p></div>`;
+  else{
+    h+=`<div class="grid2"><section class="card"><h2>기능별 능력</h2><p class="sub">기능마다 가장 최근 평가와 그 직전 평가를 비교합니다.</p>${radar(ser,300)}${legend(ser)}</section>
+    <section class="card"><h2>기능별 변화</h2><div class="scroll"><table><thead><tr><th class="l">기능</th><th>첫 평가</th><th>직전</th><th>최근</th><th>직전 대비</th><th>첫 대비</th><th>팀 평균</th></tr></thead><tbody>
+    ${S.skills.map(s=>{const n=series(p.id,s.id).length;const a=first[s.id],b=prev[s.id],c=last[s.id];
+      return `<tr><td class="l">${esc(s.name)} <span class="sub num">${n}회</span></td><td class="num">${f1(a)}</td><td class="num">${f1(b)}</td><td><span class="heat ${heatCls(c)}">${f1(c)}</span></td>
+      <td>${b!=null?delta(c-b):'<span class="flat">–</span>'}</td><td>${n>1?delta(c-a):'<span class="flat">–</span>'}</td><td class="num">${f1(tavg[s.id])}</td></tr>`}).join('')}
+    </tbody></table></div>${itemDetail(p.id)}</section></div>
+    <section class="card"><h2>기능별 추이</h2><p class="sub">평가 순서대로 표시합니다. 빨간 점이 최근 점수입니다.</p><div class="grid3" style="margin-top:10px">
+    ${S.skills.map(s=>`<div class="mini"><div class="row between"><h3>${esc(s.name)}</h3><span class="v">${f1(last[s.id])}</span></div>${spark(series(p.id,s.id))}</div>`).join('')}</div></section>`}
+  const nf=S.noteForm;
+  const timeline=[...S.notes.filter(n=>n.playerId===p.id).map(n=>({...n,kind:'note'})),...rs.filter(x=>x.memo).map(x=>({id:x.id,date:x.date,cat:'평가 메모',text:x.memo,kind:'memo'}))].sort((a,b)=>b.date.localeCompare(a.date));
+  h+=`<section class="card"><h2>특이사항</h2><p class="sub">부상, 컨디션, 기술 변화, 태도 등 관찰 내용을 날짜별로 남깁니다. 평가 메모도 함께 보입니다.</p>
+   <div class="row" style="margin-top:12px;align-items:flex-end"><label class="f">날짜<input type="date" id="nDate" data-f="ndate" value="${nf.date}"></label>
+   <label class="f">분류<select id="nCat" data-f="ncat">${NOTE_CAT.map(c=>`<option ${c===nf.cat?'selected':''}>${c}</option>`).join('')}</select></label>
+   <label class="f" style="flex:1;min-width:200px">내용<input type="text" id="nText" data-f="ntext" value="${esc(nf.text)}" placeholder="예: 오른쪽 무릎 통증으로 슬라이드 연습 제외"></label>
+   <button class="btn pri" data-act="addnote" ${S.canWrite?'':'disabled'}>추가</button></div>
+   ${timeline.length?`<div class="list" style="margin-top:10px">${timeline.map(n=>{const k='note:'+n.id;return `<div class="li"><span class="date">${fmtD(n.date)}</span><div class="grow"><span class="pill ${n.cat==='부상·통증'?'red':n.kind==='memo'?'blue':''}">${esc(n.cat)}</span> ${esc(n.text)}</div>
+   ${n.kind==='note'?`<button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delnote" data-v="${n.id}" ${S.canWrite?'':'disabled'}>${S.confirm===k?'삭제 확인':'삭제'}</button>`:''}</div>`}).join('')}</div>`:'<p class="sub" style="margin-top:10px">아직 특이사항이 없습니다.</p>'}</section>`;
+  return h}
+
+function itemDetail(pid){
+  const rs=playerRecs(pid);const rows=[];
+  S.skills.forEach(s=>s.items.forEach(it=>{const hit=rs.filter(r=>r.scores&&r.scores[it.id]!=null);if(!hit.length)return;const r=hit[hit.length-1],pr=hit[hit.length-2];
+    rows.push(`<tr><td class="l"><span class="sub">${esc(s.short||s.name)}</span> ${esc(it.name)}</td><td class="date">${shortD(r.date)}</td><td class="num">${(r.attempts?.[it.id]||[]).map(v=>v??'·').join(' ')}</td><td><span class="heat ${heatCls(r.scores[it.id])}">${f1(r.scores[it.id])}</span></td><td>${pr?delta(r.scores[it.id]-pr.scores[it.id]):'<span class="flat">–</span>'}</td></tr>`)}));
+  if(!rows.length)return '';
+  return `<details style="margin-top:12px"><summary class="sub" style="cursor:pointer">세부 항목별 최근 결과 보기</summary><div class="scroll"><table style="margin-top:6px"><thead><tr><th class="l">세부 항목</th><th>날짜</th><th>회차 점수</th><th>평균</th><th>변화</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></details>`}
+
+function viewSet(){
+  let h=`<section class="card"><h2>팀</h2><div class="row" style="margin-top:10px"><input type="text" id="newTeam" placeholder="새 팀 이름 (예: 1팀, 남자부)"><button class="btn pri" data-act="addteam" ${S.canWrite?'':'disabled'}>팀 추가</button></div>
+   <div style="margin-top:10px">${S.teams.map(t=>{const k='team:'+t.id;const n=teamPlayers(t.id).length;return `<div class="edit-row" style="grid-template-columns:minmax(0,1fr) auto auto"><input type="text" id="tn_${t.id}" value="${esc(t.name)}">
+    <button class="btn sm" data-act="saveteam" data-v="${t.id}" ${S.canWrite?'':'disabled'}>이름 저장</button>
+    <button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delteam" data-v="${t.id}" ${S.canWrite?'':'disabled'}>${S.confirm===k?`삭제 확인 (선수 ${n}명 미배정)`:'삭제'}</button></div>`}).join('')||'<p class="sub">등록된 팀이 없습니다.</p>'}</div></section>`;
+  const teamOpts=sel=>`<option value="">팀 미배정</option>`+S.teams.map(t=>`<option value="${t.id}" ${t.id===sel?'selected':''}>${esc(t.name)}</option>`).join('');
+  const posOpts=sel=>POS.map(p=>`<option ${p===sel?'selected':''}>${p}</option>`).join('');
+  const sorted=[...S.players].sort((a,b)=>(teamOf(a.teamId)?.name||'힣').localeCompare(teamOf(b.teamId)?.name||'힣','ko')||a.name.localeCompare(b.name,'ko'));
+  h+=`<section class="card"><h2>선수</h2><p class="sub">실명 대신 번호나 이니셜로 등록해도 됩니다.</p>
+   <div class="edit-row" style="border:0"><input type="text" id="np_name" placeholder="선수 이름"><select id="np_team" data-f="npteam">${teamOpts(S.npTeam??S.teamId)}</select><select id="np_pos" data-f="nppos">${posOpts(S.npPos||'리드')}</select><button class="btn pri" data-act="addplayer" ${S.canWrite?'':'disabled'}>선수 추가</button></div>
+   <div style="margin-top:6px">${sorted.map(p=>{const k='player:'+p.id;return `<div class="edit-row"><input type="text" id="pn_${p.id}" value="${esc(p.name)}"><select id="pt_${p.id}">${teamOpts(p.teamId)}</select><select id="pp_${p.id}">${posOpts(p.position)}</select>
+    <div class="row"><button class="btn sm" data-act="saveplayer" data-v="${p.id}" ${S.canWrite?'':'disabled'}>저장</button><button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delplayer" data-v="${p.id}" ${S.canWrite?'':'disabled'}>${S.confirm===k?'삭제 확인':'삭제'}</button></div></div>`}).join('')||'<p class="sub">등록된 선수가 없습니다.</p>'}</div></section>`;
+  if(!S.skillDraft)S.skillDraft=clone(S.skills);
+  const D=S.skillDraft;
+  h+=`<section class="card" style="display:grid;gap:12px"><div class="row between"><div><h2>평가 기능 · 테스트 항목</h2><p class="sub">기능과 세부 테스트 항목, 평가 기준, 기본 횟수를 추가하거나 고칠 수 있습니다. 이미 저장된 기록의 점수는 그대로 유지됩니다.</p></div>
+   <div class="row"><button class="btn" data-act="skreset">기본값 불러오기</button><button class="btn pri" data-act="sksave" ${S.canWrite?'':'disabled'}>항목 저장</button></div></div>
+   ${D.map((s,si)=>`<div class="sk-edit"><div class="row"><label class="f" style="flex:2;min-width:180px">기능 이름<input type="text" class="w100" data-f="skname" data-si="${si}" value="${esc(s.name)}"></label>
+     <label class="f" style="flex:1;min-width:100px">차트 표시명<input type="text" class="w100" data-f="skshort" data-si="${si}" value="${esc(s.short||'')}"></label>
+     <button class="btn sm" data-act="skup" data-si="${si}" ${si===0?'disabled':''} aria-label="위로">↑</button><button class="btn sm" data-act="skdel" data-si="${si}">기능 삭제</button></div>
+     <div class="it-edit sub" style="font-size:12px"><span>테스트 항목</span><span class="crin">평가 기준 / 방법</span><span>기본 횟수</span><span></span></div>
+     ${s.items.map((it,ii)=>`<div class="it-edit"><input type="text" data-f="itname" data-si="${si}" data-ii="${ii}" value="${esc(it.name)}" placeholder="테스트 항목"><input type="text" class="crin" data-f="itcr" data-si="${si}" data-ii="${ii}" value="${esc(it.criteria||'')}" placeholder="평가 기준 / 방법"><input type="text" inputmode="numeric" data-f="itreps" data-si="${si}" data-ii="${ii}" value="${it.reps||1}" aria-label="기본 횟수"><button class="btn sm" data-act="itdel" data-si="${si}" data-ii="${ii}">삭제</button></div>`).join('')}
+     <div><button class="btn sm" data-act="itadd" data-si="${si}">+ 테스트 항목 추가</button></div></div>`).join('')}
+   <div><button class="btn" data-act="skadd">+ 평가 기능 추가</button></div></section>`;
+  h+=`<section class="card"><div class="row between"><div><h2>이 기기</h2><p class="sub">${esc(syncText())} · 다른 코치의 입력은 20초마다 받아옵니다.</p></div>
+   <div class="row"><button class="btn" data-act="syncnow">지금 동기화</button><button class="btn danger ${S.confirm==='logout'?'armed':''}" data-act="dellogout">${S.confirm==='logout'?(S.queue.length?`보내지 않은 ${S.queue.length}건이 사라집니다. 접속 해제`:'접속 해제 확인'):'이 기기 접속 해제'}</button></div></div></section>`;
+  if(!S.teams.length)h+=`<section class="card"><div class="row between"><div><h2>처음 써 보시나요?</h2><p class="sub">예시팀과 학생A~D의 가상 기록을 넣어 화면을 미리 볼 수 있습니다. 설정에서 언제든 지울 수 있습니다.</p></div><button class="btn" data-act="mksample">예시 데이터 넣기</button></div></section>`;
+  const sampleN=['teams','players','records','notes','sessions'].reduce((a,c)=>a+S[c].filter(x=>x.sample).length,0);
+  if(sampleN)h+=`<section class="card"><div class="row between"><div><h2>예시 데이터</h2><p class="sub">화면 확인용 예시 팀과 학생A~D의 기록 ${sampleN}건이 들어 있습니다. 실제 기록을 시작할 때 지우세요.</p></div>
+   <button class="btn danger ${S.confirm==='sample'?'armed':''}" data-act="delsample" ${S.canWrite?'':'disabled'}>${S.confirm==='sample'?'삭제 확인':'예시 데이터 모두 삭제'}</button></div></section>`;
+  return h}
+
+function render(){
+  const ae=document.activeElement;const soft=S.softRender;S.softRender=false;
+  if(soft&&S.loaded&&ae&&ae.closest&&ae.closest('main')&&/INPUT|TEXTAREA/.test(ae.tagName)){S.pending=true;return}
+  if(!S.teamId||!teamOf(S.teamId))S.teamId=S.teams[0]?.id||null;
+  let body;
+  if(!S.pin)body=pinView();
+  else if(!S.loaded)body=`<div class="card empty"><h2>기록을 불러오는 중</h2><p>구글 시트에서 팀, 선수, 평가 기록을 가져오고 있습니다.</p></div>`;
+  else body=(S.syncErr?`<div class="banner err" role="alert">서버와 연결이 끊겼습니다. 입력 ${S.queue.length}건을 이 기기에 보관 중이며, 연결되면 자동으로 보냅니다.</div>`:'')+
+    (S.kid.on?viewKid():({dash:viewDash,eval:viewEval,result:()=>viewResult(false),rank:viewRank,memo:viewMemo,player:viewPlayer,set:viewSet}[S.tab]||viewEval)());
+  const okb=document.getElementById('kbScroll'),kbX=okb?.scrollLeft,kbK=okb?.dataset.k;const ow=document.getElementById('sbWrap'),sbX=ow?.scrollLeft,sbK=ow?.dataset.k+'|'+S.resDate+'|'+S.boardDate;const y=window.scrollY;const chipX=document.querySelector('.chips')?.scrollLeft;
+  const kid=S.kid.on&&S.pin;document.getElementById('app').innerHTML=(kid?kidHeader():header())+`<main class="${kid?'kidmode':''} ${!kid&&['eval','result','rank'].includes(S.tab)||kid?'wide':''} ${!kid&&S.cell&&S.tab==='eval'&&S.sessId?'has-sheet':''}">${body}</main>`;
+  window.scrollTo(0,y);const nkb=document.getElementById('kbScroll');if(nkb&&kbX&&nkb.dataset.k===kbK)nkb.scrollLeft=kbX;const sw=document.getElementById('sbWrap');if(sw&&sbX&&sw.dataset.k+'|'+S.resDate+'|'+S.boardDate===sbK)sw.scrollLeft=sbX;
+  const ch=document.querySelector('.chips');if(ch){const cur=ch.querySelector('[aria-current="true"]');if(chipX!=null)ch.scrollLeft=chipX;if(cur){const l=cur.offsetLeft-ch.offsetLeft;if(l<ch.scrollLeft||l+cur.offsetWidth>ch.scrollLeft+ch.clientWidth)ch.scrollLeft=l-16}}
+  if(!S.pin)setTimeout(()=>document.getElementById('pinIn')?.focus(),0)}
+function softRender(){S.softRender=true;render()}
+document.addEventListener('focusout',()=>{if(S.pending){S.pending=false;setTimeout(()=>{if(!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)))render();else S.pending=true},250)}});
+async function loadNames(){
+  if(!S.user||!S.user.profiles)return;
+  const ids=[...new Set(S.records.map(r=>r.by).filter(Boolean))].filter(i=>!(i in S.names));if(!ids.length)return;
+  ids.forEach(i=>S.names[i]='');
+  try{const ps=await S.user.profiles(ids);ids.forEach(i=>{S.names[i]=ps?.[i]?.name||''})}catch(e){}}
+
+/* ---------- events ---------- */
+function curSess(){return sessOf(S.sessId)}
+document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)return;
+  if(f==='ntext')S.noteForm.text=el.value;
+  else if(f==='nstitle')S.newSess.title=el.value;
+  else if(f==='nsrepin'){const n=Math.max(1,Math.min(30,parseInt(el.value,10)||1));S.newSess.items[el.dataset.i]=n}
+  else if(f==='rmemo'){const s=sessOf(el.dataset.s);if(s){getDraft(s,el.dataset.p).memo=el.value;schedule(s,el.dataset.p)}}
+  else if(f==='evmemo'){const s=curSess();if(s&&S.evalP){getDraft(s,S.evalP).memo=el.value;schedule(s,S.evalP)}}
+  else if(/^sk|^it/.test(f)){const s=S.skillDraft[+el.dataset.si];if(f==='skname')s.name=el.value;if(f==='skshort')s.short=el.value;
+    const it=s.items[+el.dataset.ii];if(f==='itname')it.name=el.value;if(f==='itcr')it.criteria=el.value;if(f==='itreps')it.reps=Math.max(1,Math.min(30,parseInt(el.value,10)||1))}});
+document.addEventListener('change',e=>{const el=e.target,f=el.dataset.f;if(!f)return;
+  if(f==='team'){flushAll();S.teamId=el.value;S.playerId=null;S.sessId=null;S.evalP=null;S.newSess=null;render()}
+  else if(f==='player'){S.playerId=el.value;render()}
+  else if(f==='nsdate'){S.newSess.date=el.value;render()}
+  else if(f==='nscopy'){const src=sessOf(el.value);if(src){const m={};src.items.forEach(i=>m[i.itemId]=i.reps);S.newSess.items=m;toast('항목과 횟수를 불러왔습니다')}render()}
+  else if(f==='nsrepin')render();
+  else if(f==='npteam')S.npTeam=el.value;
+  else if(f==='nppos')S.npPos=el.value;
+  else if(f==='bdate'){if(el.value){S.boardDate=el.value;render()}}
+  else if(f==='rdate'){if(el.value){S.resDate=el.value;render()}}
+  else if(f==='mdate'){if(el.value){S.memoDate=el.value;render()}}
+  else if(f==='rkteam'){const R=rankState();R.team=el.value;saveRank();render()}
+  else if(f==='rkpos'){const R=rankState();R.pos=el.value;saveRank();render()}
+  else if(f==='rktop'){const R=rankState();R.top=Math.max(0,Math.min(99,parseInt(el.value,10)||0));saveRank();render()}
+  else if(f==='rkfull'){const R=rankState();R.full=el.checked;saveRank();render()}
+  else if(f==='mflag'){S.memoFlagOnly=el.checked;render()}
+  else if(f==='ndate')S.noteForm.date=el.value;
+  else if(f==='ncat')S.noteForm.cat=el.value});
+function arm(k){if(S.confirm===k){S.confirm=null;return true}S.confirm=k;render();return false}
+const val=id=>(document.getElementById(id)?.value||'').trim();
+function openSess(id,pid){flushAll();S.sessId=id;S.evalP=pid||null;S.evalItem=0;S.slot=null;S.cell=false;S.newSess=null;S.tab='eval';S.saveState='';const s=sessOf(id);if(s){S.teamId=s.teamId;S.boardDate=s.date}render();setTimeout(()=>{const el=document.getElementById('sb_'+id);if(el)el.scrollIntoView({block:'start'});else window.scrollTo(0,0)},0)}
+function nextIncomplete(sess,d,from){for(let k=1;k<=sess.items.length;k++){const i=(from+k)%sess.items.length;if(d.attempts[sess.items[i].itemId].some(v=>v==null))return i}return -1}
+function padInput(n){
+  const sess=curSess();if(!sess||!S.evalP)return;const d=getDraft(sess,S.evalP);const it=sess.items[S.evalItem];const a=d.attempts[it.itemId];
+  const t=S.slot!=null?S.slot:a.findIndex(v=>v==null);if(t<0){toast('고칠 회차를 먼저 누르세요');return}
+  a[t]=n;const wasSel=S.slot!=null;S.slot=null;schedule(sess,S.evalP);
+  if(!wasSel&&!a.some(v=>v==null)){const ni=nextIncomplete(sess,d,S.evalItem);
+    if(ni>=0){S.evalItem=ni;toast('다음: '+sess.items[ni].name)}
+    else if(S.kid.on){S.kidDone=true}
+    else{const ps=sessPlayers(sess);const pi=ps.findIndex(x=>x.id===S.evalP);let moved=false;
+      for(let k=1;k<ps.length;k++){const q=ps[(pi+k)%ps.length];const qi=nextIncomplete(sess,getDraft(sess,q.id),-1);if(qi>=0){flush(sess.id,S.evalP);S.evalP=q.id;S.evalItem=qi;moved=true;toast('다음 선수: '+q.name);break}}
+      if(!moved){S.cell=false;toast('이 시트 평가를 모두 마쳤습니다')}}}
+  render()}
+
+document.addEventListener('keydown',e=>{if(!S.evalP||!curSess()||!(S.kid.on||(S.tab==='eval'&&S.cell)))return;if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName))return;
+  if(/^[1-5]$/.test(e.key)){e.preventDefault();padInput(+e.key)}else if(e.key==='ArrowRight'&&S.evalItem<curSess().items.length-1){S.evalItem++;S.slot=null;render()}else if(e.key==='ArrowLeft'&&S.evalItem>0){S.evalItem--;S.slot=null;render()}});
+
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  const a=b.dataset.act,v=b.dataset.v,si=+b.dataset.si,ii=+b.dataset.ii;
+  if(!/^del/.test(a)&&S.confirm){S.confirm=null}
+  switch(a){
+  case 'tab':flushAll();S.cell=false;S.resP=null;S.tab=v;if(v==='set')S.skillDraft=null;render();window.scrollTo(0,0);break;
+  case 'goplayer':S.playerId=v;S.tab='player';render();window.scrollTo(0,0);break;
+  /* sessions */
+  case 'newsess':{const used=S.sessions.filter(s=>s.date===S.boardDate).map(s=>s.sheet);const sh=v||SHEETS.find(x=>!used.includes(x))||'A';const pm={};teamPlayers(S.teamId).forEach(p=>pm[p.id]=true);S.newSess={id:null,date:S.boardDate,teamId:S.teamId,title:'',items:{},sheet:sh,playerIds:pm};}render();window.scrollTo(0,0);break;
+  case 'editsess':{const s=sessOf(v)||curSess();if(!s)break;flushAll();const m={};s.items.forEach(i=>m[i.itemId]=i.reps);const pm={};sessPlayers(s).forEach(p=>pm[p.id]=true);S.newSess={id:s.id,date:s.date,teamId:s.teamId,title:s.title||'',items:m,sheet:s.sheet||'',playerIds:pm,createdAt:s.createdAt,sample:s.sample};render();window.scrollTo(0,0);break}
+  case 'nsitem':{const it=S.skills.flatMap(s=>s.items).find(x=>x.id===b.dataset.i);const m=S.newSess.items;if(m[b.dataset.i]!=null)delete m[b.dataset.i];else m[b.dataset.i]=it?.reps||1;render();break}
+  case 'nsskill':{const s=S.skills.find(x=>x.id===v);const m=S.newSess.items;const all=s.items.every(i=>m[i.id]!=null);s.items.forEach(i=>{if(all)delete m[i.id];else if(m[i.id]==null)m[i.id]=i.reps||1});render();break}
+  case 'nsrep':{const m=S.newSess.items,k=b.dataset.i;m[k]=Math.max(1,Math.min(30,(m[k]||1)+(+b.dataset.d)));render();break}
+  case 'nscancel':{const id=S.newSess.id;S.newSess=null;if(id)S.sessId=id;render();break}
+  case 'nssave':{const N=S.newSess;const items=[];S.skills.forEach(s=>s.items.forEach(it=>{if(N.items[it.id]!=null)items.push({itemId:it.id,skillId:s.id,skillName:s.name,name:it.name,reps:N.items[it.id]})}));
+    if(!items.length){toast('평가할 항목을 고르세요');break}
+    const pids=teamPlayers(N.teamId).filter(p=>N.playerIds[p.id]).map(p=>p.id);if(!pids.length){toast('선수를 한 명 이상 선택하세요');break}
+    const id=N.id||uid('s');const doc={date:N.date||today(),teamId:N.teamId,sheet:N.sheet||'',playerIds:pids,title:N.title.trim(),items,createdAt:N.createdAt||new Date().toISOString(),by:S.uid||null};if(N.sample)doc.sample=true;
+    if(await put('sessions',id,doc)){if(!S.sessions.some(x=>x.id===id))S.sessions.push({...doc,id});else Object.assign(sessOf(id),doc);
+      if(N.id){// keep record dates in sync
+        for(const r of S.records.filter(r=>r.sessionId===id&&r.date!==doc.date)){const d=getDraft(sessOf(id),r.playerId);schedule(sessOf(id),r.playerId)}}
+      Object.keys(S.drafts).forEach(k=>{if(k.startsWith(id+'__'))getDraft(sessOf(id),k.split('__')[1])});
+      S.boardDate=doc.date;toast(N.id?'설정을 저장했습니다':'평가판을 만들었습니다. 칸을 눌러 점수를 입력하세요');openSess(id)}break}
+  case 'nssheet':S.newSess.sheet=v;render();break;
+  case 'nsteamb':{if(S.newSess.teamId===v)break;const pm={};teamPlayers(v).forEach(p=>pm[p.id]=true);S.newSess.teamId=v;S.newSess.playerIds=pm;render();break}
+  case 'nsp':{const m=S.newSess.playerIds;if(m[v])delete m[v];else m[v]=true;render();break}
+  case 'nsallp':{const N=S.newSess;const tps=teamPlayers(N.teamId);const all=tps.every(p=>N.playerIds[p.id]);N.playerIds={};if(!all)tps.forEach(p=>N.playerIds[p.id]=true);render();break}
+  case 'syncnow':pump();refresh(true);toast('동기화합니다');break;
+  case 'dellogout':if(arm('logout')){S.queue=[];saveQueue();S.pin=null;lsSet(PKEY,null);S.loaded=false;S.authMsg='';render()}break;
+  case 'mksample':makeSample();break;
+  case 'opensess':openSess(v);break;
+  case 'bdate':S.boardDate=v;S.cell=false;render();break;
+  case 'rdate':S.resDate=v;render();break;
+  case 'rkses':{const R=rankState();if(R.sess[v])delete R.sess[v];else R.sess[v]=true;saveRank();render();break}
+  case 'rksel':{const R=rankState();const list=rankSessions(R);R.sess={};const lim=shiftDate(today(),-28);list.forEach(s=>{if(v==='all'||(v==='4w'&&s.date>=lim))R.sess[s.id]=true});saveRank();render();break}
+  case 'rkitem':{const R=rankState();R.w[v]=wOf(R,v)>0?0:1;saveRank();render();break}
+  case 'rkw':{const R=rankState();R.w[v]=+b.dataset.w;saveRank();render();break}
+  case 'rkcopy':{const t=rankTSV();const done=()=>toast('순위표를 복사했습니다. 구글 시트나 엑셀에 붙여 넣으세요');
+    try{navigator.clipboard.writeText(t).then(done,()=>fallbackCopy(t))}catch(e){fallbackCopy(t)}break}
+  case 'kq':{const ss=sessOf(b.dataset.s);if(!ss)break;const it=ss.items.find(x=>x.itemId===b.dataset.i);const d=getDraft(ss,b.dataset.p);const a=d.attempts[b.dataset.i];const t=a.findIndex(x=>x==null);if(t<0){toast('이 항목은 다 했어요');break}
+    a[t]=+v;schedule(ss,b.dataset.p);S.kidHit=ss.id+'|'+b.dataset.p+'|'+b.dataset.i;clearTimeout(S.kidHitT);S.kidHitT=setTimeout(()=>{S.kidHit=null;softRender()},900);render();
+    toast(`${playerOf(b.dataset.p)?.name||''} · ${it?.name||''} ${t+1}회 ${v}점${a.every(x=>x!=null)?' · 완료!':''}`);break}
+  case 'kidsheet':S.kidSheetId=v;render();window.scrollTo(0,0);break;
+  case 'kqu':{const ss=sessOf(b.dataset.s);if(!ss)break;const d=getDraft(ss,b.dataset.p);const a=d.attempts[b.dataset.i];for(let k=a.length-1;k>=0;k--)if(a[k]!=null){a[k]=null;break}schedule(ss,b.dataset.p);render();toast('마지막 점수를 지웠어요');break}
+  case 'delresday':if(arm('resday:'+S.resDate)){const ds=S.sessions.filter(x=>x.date===S.resDate);const ids=new Set(ds.map(x=>x.id));
+    const items=[...S.records.filter(r=>ids.has(r.sessionId)).map(r=>({col:'records',id:r.id})),...ds.map(x=>({col:'sessions',id:x.id}))];
+    Object.keys(S.drafts).forEach(k=>{if(ids.has(k.split('__')[0])){clearTimeout(S.timers[k]);delete S.timers[k];delete S.drafts[k]}});if(ids.has(S.sessId)){S.sessId=null;S.cell=false}
+    delMany(items);toast(`${dayLabel(S.resDate)} 평가 ${ds.length}개를 삭제했습니다`);render()}break;
+  case 'delressess':if(arm('ress:'+v)){const ids=new Set([v]);const items=[...S.records.filter(r=>r.sessionId===v).map(r=>({col:'records',id:r.id})),{col:'sessions',id:v}];
+    Object.keys(S.drafts).forEach(k=>{if(k.startsWith(v+'__')){clearTimeout(S.timers[k]);delete S.timers[k];delete S.drafts[k]}});if(S.sessId===v){S.sessId=null;S.cell=false}
+    delMany(items);toast('평가를 삭제했습니다');render()}break;
+  case 'sbjump':{const el=document.getElementById('sb_'+v),w=document.getElementById('sbWrap');if(el&&w)w.scrollTo({left:el.offsetLeft-w.offsetLeft,behavior:'smooth'});break}
+  case 'resp':S.resP=v;S.resS=b.dataset.s;render();window.scrollTo(0,0);break;
+  case 'resback':S.resP=null;render();break;
+  case 'kidpage':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.kid.page=v;S.resP=null;S.resDate=today();render();window.scrollTo(0,0);break}
+  case 'memoopen':S.memoOpen=v;render();setTimeout(()=>document.getElementById('rm_'+v)?.focus(),0);break;
+  case 'mdate':S.memoDate=v;render();break;
+  case 'togglecrit':S.showCrit=!S.showCrit;render();break;
+  case 'cell':{const s=curSess();if(S.evalP&&s&&(S.evalP!==b.dataset.p||s.id!==b.dataset.s))flush(s.id,S.evalP);S.sessId=b.dataset.s;S.evalP=b.dataset.p;S.evalItem=+v;S.slot=null;S.cell=true;render();break}
+  case 'cellmove':{const s=curSess();if(!s)break;const ps=sessPlayers(s),n=s.items.length,tot=ps.length*n;let idx=ps.findIndex(x=>x.id===S.evalP)*n+S.evalItem+(+v);idx=(idx+tot)%tot;
+    const np=ps[Math.floor(idx/n)].id;if(np!==S.evalP)flush(s.id,S.evalP);S.evalP=np;S.evalItem=idx%n;S.slot=null;render();break}
+  case 'cellclose':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.cell=false;render();break}
+  case 'flag':{const s=sessOf(b.dataset.s)||curSess();if(!s)break;const d=getDraft(s,b.dataset.p);d.flag=!d.flag;schedule(s,b.dataset.p);render();toast(d.flag?'기록 정리에서 메모할 선수로 표시했습니다':'표시를 해제했습니다');break}
+  case 'mnote':{const t=val(v+'_t'),c=val(v+'_c');if(!t){toast('특이사항 내용을 입력하세요');break}await put('notes',uid('n'),{playerId:b.dataset.p,date:S.memoDate,cat:c||'기타',text:t,createdAt:new Date().toISOString(),by:null});toast('특이사항을 추가했습니다');render();break}
+  case 'kidon':flushAll();S.cell=false;S.sessId=null;S.evalP=null;S.kid={on:true,view:'enter'};lsSet('curling.kid','1');render();window.scrollTo(0,0);break;
+  case 'kidexit':S.kid.exit=true;S.kid.exitMsg='';render();break;
+  case 'kidexitcancel':S.kid.exit=false;render();break;
+  case 'kidsess':S.sessId=v;S.evalP=null;render();window.scrollTo(0,0);break;
+  case 'kidsback':S.sessId=null;S.evalP=null;render();break;
+  case 'kidp':{const s=curSess();S.evalP=v;S.kidDone=false;S.kid.view='enter';S.slot=null;const ni=nextIncomplete(s,getDraft(s,v),-1);S.evalItem=ni>=0?ni:0;render();window.scrollTo(0,0);break}
+  case 'kidpback':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.evalP=null;S.kidDone=false;render();window.scrollTo(0,0);break}
+  case 'kidview':S.kid.view=v;if(v==='enter')S.kidDone=false;render();break;
+  case 'kiddone':S.kidDone=true;render();break;
+  case 'kidcontinue':S.kidDone=false;render();break;
+  case 'closesess':flushAll();S.cell=false;S.sessId=null;S.evalP=null;render();window.scrollTo(0,0);break;
+  case 'delsess':if(arm('sess:'+v)){Object.keys(S.drafts).forEach(k=>{if(k.startsWith(v+'__')){clearTimeout(S.timers[k]);delete S.timers[k];delete S.drafts[k]}});if(S.sessId===v){S.sessId=null;S.cell=false}delMany([...S.records.filter(r=>r.sessionId===v).map(r=>({col:'records',id:r.id})),{col:'sessions',id:v}]);toast('평가를 삭제했습니다');render()}break;
+  case 'evalp':if(!v)break;{const s=curSess();if(S.evalP&&s)flush(s.id,S.evalP);S.evalP=v;S.slot=null;const d=getDraft(s,v);const ni=nextIncomplete(s,d,-1);S.evalItem=ni>=0?ni:0;S.saveState='';render();
+    if(window.innerWidth<=760)document.querySelector('.panel')?.scrollIntoView({block:'start'});break}
+  case 'evalback':{const s=curSess();if(s&&S.evalP)flush(s.id,S.evalP);S.evalP=null;render();window.scrollTo(0,0);break}
+  case 'evalitem':S.evalItem=+v;S.slot=null;S.kidDone=false;render();break;
+  case 'slot':S.slot=S.slot===+v?null:+v;render();break;
+  case 'pad':padInput(+v);break;
+  case 'padclear':{const s=curSess();if(!s||!S.evalP)break;const d=getDraft(s,S.evalP);const arr=d.attempts[s.items[S.evalItem].itemId];
+    let t=S.slot;if(t==null){for(let i=arr.length-1;i>=0;i--)if(arr[i]!=null){t=i;break}}if(t==null)break;arr[t]=null;S.slot=null;schedule(s,S.evalP);render();break}
+  /* notes */
+  case 'addnote':{const n=S.noteForm;if(!n.text.trim()){toast('내용을 입력하세요');break}
+    if(await put('notes',uid('n'),{playerId:S.playerId,date:n.date||today(),cat:n.cat,text:n.text.trim(),createdAt:new Date().toISOString(),by:S.uid||null})){S.noteForm={...n,text:''};render();toast('특이사항을 추가했습니다')}break}
+  case 'delnote':if(arm('note:'+v)){await del('notes',v);render()}break;
+  /* settings */
+  case 'addteam':{const n=val('newTeam');if(!n){toast('팀 이름을 입력하세요');break}const id=uid('t');if(await put('teams',id,{name:n,createdAt:new Date().toISOString()})){S.teamId=id;toast('팀을 추가했습니다')}break}
+  case 'saveteam':{const t=teamOf(v);const n=val('tn_'+v);if(t&&n&&await put('teams',v,{...strip(t),name:n}))toast('저장했습니다');break}
+  case 'delteam':if(arm('team:'+v)){for(const p of teamPlayers(v))await put('players',p.id,{...strip(p),teamId:''});await del('teams',v);render()}break;
+  case 'addplayer':{const n=val('np_name');if(!n){toast('선수 이름을 입력하세요');break}
+    if(await put('players',uid('p'),{name:n,teamId:val('np_team'),position:val('np_pos'),createdAt:new Date().toISOString()})){toast('선수를 추가했습니다');const el=document.getElementById('np_name');if(el){el.value='';el.focus()}}break}
+  case 'saveplayer':{const p=playerOf(v);const n=val('pn_'+v);if(p&&n&&await put('players',v,{...strip(p),name:n,teamId:val('pt_'+v),position:val('pp_'+v)}))toast('저장했습니다');break}
+  case 'delplayer':if(arm('player:'+v)){await del('players',v);render()}break;
+  case 'skadd':S.skillDraft.push({id:uid('k'),name:'새 기능',short:'',items:[{id:uid('i'),name:'',criteria:'',reps:1}]});render();break;
+  case 'skdel':S.skillDraft.splice(si,1);render();break;
+  case 'skup':{const d=S.skillDraft;[d[si-1],d[si]]=[d[si],d[si-1]];render();break}
+  case 'itadd':S.skillDraft[si].items.push({id:uid('i'),name:'',criteria:'',reps:1});render();break;
+  case 'itdel':S.skillDraft[si].items.splice(ii,1);render();break;
+  case 'skreset':S.skillDraft=clone(DEFAULT_SKILLS);render();toast('기본 항목을 불러왔습니다. 저장을 눌러야 적용됩니다');break;
+  case 'sksave':{const d=S.skillDraft.map(s=>({...s,name:s.name.trim()||'이름 없는 기능',short:(s.short||'').trim(),items:s.items.filter(i=>i.name.trim()).map(i=>({...i,name:i.name.trim(),criteria:(i.criteria||'').trim(),reps:i.reps||1}))})).filter(s=>s.items.length);
+    if(!d.length){toast('테스트 항목이 하나 이상 있어야 합니다');break}if(await putSkills(d)){S.skills=d;S.skillDraft=null;render();toast('평가 항목을 저장했습니다')}break}
+  case 'delsample':if(arm('sample')){for(const c of ['records','notes','sessions','players','teams'])for(const x of S[c].filter(x=>x.sample))await del(c,x.id);toast('예시 데이터를 삭제했습니다');render()}break;
+  }});
+function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?'순위표를 복사했습니다. 구글 시트나 엑셀에 붙여 넣으세요':'복사하지 못했습니다. 표를 직접 선택해 복사하세요')}
+function strip(o){const c={...o};delete c.id;return c}
+window.addEventListener('pagehide',flushAll);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushAll()});
+
+/* ---------- boot ---------- */
+function boot(){
+  try{const q=new URLSearchParams(location.search).get('api');if(q&&/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(q)){lsSet(AKEY,q);history.replaceState(null,'',location.pathname)}}catch(e){}
+  S.pin=lsGet(PKEY);if(!IN_GAS&&!apiUrl())S.pin=null;
+  if(S.pin){refresh(true);pump()}else{S.loaded=false;render()}
+  setInterval(()=>{if(!document.hidden){if(S.queue.length)pump();else refresh()}},20000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.pin){S.queue.length?pump():refresh()}});
+  window.addEventListener('online',()=>pump());
+}
+render();boot();
+})();
+</script>
+
+</body>
+</html>
