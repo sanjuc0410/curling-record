@@ -208,6 +208,16 @@ main.wide{max-width:none}
 .dg-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted)}
 .dg-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;border:1px solid var(--ink)}
 .kdg{display:flex;gap:12px;align-items:flex-start}
+.kid-top{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+.kt-left{flex:1 1 300px;min-width:0}
+.kt-dg{display:grid;gap:10px;align-items:start;max-width:100%;overflow-x:auto;flex:0 1 auto}
+.kdgc{margin:0;display:grid;gap:4px;justify-items:center;width:118px}
+.kdgc figcaption{display:grid;gap:2px;text-align:center;font-size:12.5px;line-height:1.3}
+.dg-note{display:inline-block;font-size:11.5px;color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:2px 6px}
+.kt-leg{grid-column:1/-1;justify-content:center}
+.kid-wrap{grid-auto-columns:max-content;scroll-snap-type:x mandatory}
+.kid-wrap .sheet-block{min-width:min(92vw,360px)}
+.kid-wrap .ktable{width:calc(var(--n) * 118px + 12px);min-width:0}
 .kr-list{display:grid;gap:8px}
 .kr-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card);cursor:pointer;font:inherit;color:inherit;text-align:left}
 .kr-item:hover{border-color:var(--blue)}
@@ -697,7 +707,7 @@ function sheetHead(sess,tools){const g=sessProgress(sess);const k='sess:'+sess.i
    ${tools?`<div class="row"><button class="btn sm" data-act="editsess" data-v="${sess.id}">설정</button><button class="btn sm danger ${S.confirm===k?'armed':''}" data-act="delsess" data-v="${sess.id}">${S.confirm===k?'삭제 확인':'삭제'}</button></div>`:''}</div>`}
 function sheetBlock(sess){
   return `<section class="card sheet-block" id="sb_${sess.id}">${sheetHead(sess,true)}
-   ${S.showCrit?`<div class="crit" style="margin:0 14px 10px">${sess.items.map(it=>{const df=itemDef(it.itemId);return `<div class="row" style="align-items:flex-start;flex-wrap:nowrap">${dgHas(df?.diagram)?diagramSVG(df.diagram,{w:70,lines:false}):''}<div><b>${esc(it.name)}</b> <span class="sub">${esc(df?.criteria||'')}</span></div></div>`}).join('')}</div>`:''}
+   ${S.showCrit?`<div class="crit" style="margin:0 14px 10px">${sess.items.map(it=>{const df=itemDef(it.itemId);return `<div class="row" style="align-items:flex-start;flex-wrap:nowrap">${dgHas(df?.diagram)?diagramSVG(df.diagram,{w:70,lines:false}):''}<div><b>${esc(it.name)}</b> <span class="sub">${esc(df?.criteria||'')}</span>${df?.diagram?.note?` <span class="pill blue">${esc(df.diagram.note)}</span>`:''}</div></div>`}).join('')}</div>`:''}
    ${sheetGrid(sess,'input')}</section>`}
 function sheetGrid(sess,mode){
   const ps=sessPlayers(sess);if(!ps.length)return '<p class="sub" style="padding:0 14px 14px">선수가 없습니다.</p>';
@@ -814,7 +824,7 @@ const DG_PRESETS={
   draw:{name:'드로우 (버튼 목표)',stones:[{x:237.5,y:183,c:'t'}],zones:{btn:'5',f4:'4',f8:'3',f12:'2',fgz:'',out:'0'}},
   guard:{name:'가드 (프리가드존)',stones:[{x:237.5,y:430,c:'t'}],zones:{btn:'',f4:'',f8:'',f12:'1',fgz:'4',out:'0'}},
   take:{name:'테이크아웃 (상대 스톤 제거)',stones:[{x:200,y:150,c:'g'}],zones:{btn:'',f4:'',f8:'',f12:'',fgz:'',out:''}}};
-function dgHas(dg){return !!(dg&&dg.on&&((dg.stones&&dg.stones.length)||ZONES.some(([k])=>dg.zones&&String(dg.zones[k]??'')!=='')))}
+function dgHas(dg){return !!(dg&&dg.on&&((dg.stones&&dg.stones.length)||ZONES.some(([k])=>dg.zones&&String(dg.zones[k]??'')!=='')||dg.note))}
 function diagramSVG(dg,o){o=o||{};dg=dg||{};const z=dg.zones||{};const W=DG.W,cx=DG.cx,ty=DG.tee;
   const usesFgz=String(z.fgz??'')!==''||(dg.stones||[]).some(st=>st.y>ty+DG.r12-10);const H=(o.edit||usesFgz)?DG.H:ty+DG.r12+40;
   const lab=(x,y,t)=>t===''||t==null?'':`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${o.fs||40}" font-weight="700" style="fill:var(--ink);stroke:var(--card);stroke-width:9;paint-order:stroke">${esc(String(t))}</text>`;
@@ -844,6 +854,7 @@ function dgEditor(it,si,ii){const dg=it.diagram||{};const tool=S.dgTool||'t';
       <button class="chip" data-act="dgtool" data-v="t" aria-current="${tool==='t'}">● 목표 자리 (빨강)</button><button class="chip" data-act="dgtool" data-v="g" aria-current="${tool==='g'}">● 상대·가드 스톤 (노랑)</button><button class="chip" data-act="dgtool" data-v="x" aria-current="${tool==='x'}">지우개</button>
       <button class="btn sm" data-act="dgclear" data-si="${si}" data-ii="${ii}">스톤 모두 지우기</button></div></div>
      <div><div class="sub">자리별 점수 (비워 두면 표시 안 함)</div><div class="dg-zones">${ZONES.map(([k,n])=>`<label class="f">${n}<input type="text" inputmode="numeric" data-f="dgz" data-k="${k}" data-si="${si}" data-ii="${ii}" value="${esc(dg.zones?.[k]??'')}"></label>`).join('')}</div></div>
+     <label class="f">메모 · 특이사항 (선수 모드에 함께 표시)<input type="text" maxlength="60" data-f="dgnote" data-si="${si}" data-ii="${ii}" value="${esc(dg.note||'')}" placeholder="예: 테이크 롤아웃 = 1점"></label>
      <div><div class="sub">빠른 설정</div><div class="row" style="gap:6px;margin-top:4px">${Object.entries(DG_PRESETS).map(([k,p])=>`<button class="btn sm" data-act="dgpreset" data-v="${k}" data-si="${si}" data-ii="${ii}">${p.name}</button>`).join('')}</div></div>
      <p class="sub" style="margin:0">위쪽이 백라인, 아래 빨간 선이 호그라인입니다. 바꾼 뒤 위의 <b>항목 저장</b>을 눌러야 적용됩니다.</p>
     </div></div></div>`}
@@ -923,19 +934,22 @@ function viewKid(){
   if(K.page==='result')return viewResult(true);
   const td=today();const ds=S.sessions.filter(s=>s.date===td).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
   if(!ds.length)return `<div class="card empty"><h2>오늘 만들어진 평가가 없어요</h2><p>코치 선생님께 말씀해 주세요.</p></div>`;
-  let cur=sessOf(S.kidSheetId);if(!cur||cur.date!==td)cur=ds[0];
-  return `<section class="card kid-hello"><h1>내 이름 아래 숫자를 눌러요</h1>
-    <p class="sub" style="margin:4px 0 0">${dayLabel(td)} · 숫자를 한 번 누르면 1회 기록돼요. 잘못 눌렀으면 ↺ 지우기를 누르세요.</p>
-    ${ds.length>1?`<div class="chips" style="margin-top:10px">${ds.map(s=>{const g=sessProgress(s);return `<button class="chip ksheet" data-act="kidsheet" data-v="${s.id}" aria-current="${s.id===cur.id}"><b>시트 ${esc(s.sheet||'-')}</b> ${esc(sessTeamName(s))} <span class="num">${g.pct}%</span></button>`}).join('')}</div>`:''}</section>
-   ${kidBoard(cur)}`}
+  const seen=new Set(),dgs=[];ds.forEach(s=>s.items.forEach(it=>{const df=itemDef(it.itemId);if(!seen.has(it.itemId)&&dgHas(df?.diagram)){seen.add(it.itemId);dgs.push({it,df})}}));
+  return `<section class="card kid-hello kid-top"><div class="kt-left"><h1>내 이름 아래 숫자를 눌러요</h1>
+    <p class="sub" style="margin:4px 0 0">${dayLabel(td)} · 숫자를 한 번 누르면 1회 기록돼요. 잘못 눌렀으면 ↺ 지우기를 누르세요.${ds.length>1?' 옆으로 밀면 다른 시트로 가요.':''}</p>
+    ${ds.length>1?`<div class="chips" style="margin-top:10px;flex-wrap:wrap">${ds.map(s=>{const g=sessProgress(s);return `<button class="chip ksheet" data-act="sbjump" data-v="${s.id}"><b>${s.sheet?'시트 '+esc(s.sheet):'시트 없음'}</b> ${esc(sessTeamName(s))} <span class="num">${g.pct}%</span></button>`}).join('')}</div>`:''}</div>
+    ${dgs.length?`<div class="kt-dg" style="grid-template-columns:repeat(${dgs.length},118px)">${dgs.map(({it,df})=>`<figure class="kdgc">${diagramSVG(df.diagram,{w:112,lines:false,fs:46})}<figcaption><b>${esc(it.name)}</b>${df.diagram.note?`<span class="dg-note">${esc(df.diagram.note)}</span>`:''}</figcaption></figure>`).join('')}
+      <div class="dg-legend kt-leg"><span><i style="background:var(--red)"></i>목표 자리</span><span><i style="background:var(--stone-y)"></i>상대·가드</span><span>숫자 = 멈춘 자리 점수</span></div></div>`:''}</section>
+   <div class="sb-wrap kid-wrap" id="sbWrap" data-k="kid">${ds.map(kidBoard).join('')}</div>`}
 function kidBoard(sess){
-  const ps=sessPlayers(sess);if(!ps.length)return `<div class="card empty"><h2>이 시트에 선수가 없어요</h2></div>`;
-  const g=sessProgress(sess);
-  return `<section class="card kboard"><div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(sessTeamName(sess))}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div>${ps.length>8?'<span class="sub">옆으로 밀면 다른 친구가 보여요 →</span>':''}</div>
-   <div class="scroll" id="kbScroll" data-k="${sess.id}"><table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
+  const ps=sessPlayers(sess);const g=sessProgress(sess);
+  const head=`<div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(sessTeamName(sess))}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div></div>`;
+  if(!ps.length)return `<section class="card sheet-block kboard" id="sb_${sess.id}">${head}<p class="sub" style="padding:14px">이 시트에 선수가 없어요.</p></section>`;
+  return `<section class="card sheet-block kboard" id="sb_${sess.id}">${head}
+   <table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
       return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${pSub(sess,p)}</div><span class="heat ${heatM(ov,T)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
-   <tbody>${sess.items.map(it=>`<tr class="kband"><td colspan="${ps.length}">${(()=>{const df=itemDef(it.itemId);const dg=df?.diagram;const head=`<b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}</span>`;
-      if(!dgHas(dg))return head;return `<div class="kdg">${diagramSVG(dg,{w:150})}<div style="display:grid;gap:4px;align-content:start;min-width:0"><div>${head}</div>${df.criteria?`<div class="sub">${esc(df.criteria)}</div>`:''}${dgLegend(dg)}</div></div>`})()}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`).join('')}</tbody></table></div></section>`}
+   <tbody>${sess.items.map(it=>{const df=itemDef(it.itemId);const note=df?.diagram?.note;
+     return `<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}${dgHas(df?.diagram)?' · 위 그림 참고':''}</span>${note?` <span class="pill blue">${esc(note)}</span>`:''}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`}).join('')}</tbody></table></section>`}
 function kidCell(sess,p,it){
   const at=peekAttempts(sess,p.id);const a=(at[it.itemId]||[]).slice(0,it.reps);while(a.length<it.reps)a.push(null);
   const n=a.filter(x=>x!=null).length,full=n===it.reps,v=avg(a);const hit=S.kidHit===sess.id+'|'+p.id+'|'+it.itemId;
@@ -1048,6 +1062,7 @@ async function loadNames(){
 /* ---------- events ---------- */
 function curSess(){return sessOf(S.sessId)}
 document.addEventListener('input',e=>{const el=e.target,f=el.dataset.f;if(!f)return;
+  if(f==='dgnote'){const it=S.skillDraft[+el.dataset.si].items[+el.dataset.ii];it.diagram=Object.assign({on:true,stones:[],zones:{}},it.diagram,{note:el.value.slice(0,60)});return}
   if(f==='dgz'){const it=S.skillDraft[+el.dataset.si].items[+el.dataset.ii];it.diagram=Object.assign({on:true,stones:[],zones:{}},it.diagram);it.diagram.zones={...it.diagram.zones,[el.dataset.k]:el.value.trim().slice(0,4)};return}
   if(f==='ntext')S.noteForm.text=el.value;
   else if(f==='nstitle')S.newSess.title=el.value;
@@ -1147,7 +1162,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]
   case 'dgopen':{const k=si+'-'+ii;S.dgEdit=S.dgEdit===k?null:k;render();break}
   case 'dgtool':S.dgTool=v;render();break;
   case 'dgclear':{const it=S.skillDraft[si].items[ii];it.diagram=Object.assign({on:true,zones:{}},it.diagram,{stones:[]});render();break}
-  case 'dgpreset':{const it=S.skillDraft[si].items[ii];const p=DG_PRESETS[v];it.diagram={on:true,stones:clone(p.stones),zones:clone(p.zones)};
+  case 'dgpreset':{const it=S.skillDraft[si].items[ii];const p=DG_PRESETS[v];it.diagram={on:true,stones:clone(p.stones),zones:clone(p.zones),note:it.diagram?.note||(v==='take'?'테이크 롤아웃 = 1점':'')};
     const M=mx(it);Object.keys(it.diagram.zones).forEach(k=>{const n=it.diagram.zones[k];if(n!==''&&+n>M)it.diagram.zones[k]=String(M)});render();toast(p.name+' 그림을 넣었습니다. 항목 저장을 눌러야 적용됩니다');break}
   case 'dgclick':{const it=S.skillDraft[si]?.items[ii];if(!it)break;const r=b.getBoundingClientRect();const x=Math.round((e.clientX-r.left)/r.width*DG.W),y=Math.round((e.clientY-r.top)/r.height*DG.H);
     const dg=it.diagram=Object.assign({on:true,zones:{}},it.diagram);dg.stones=[...(dg.stones||[])];const tool=S.dgTool||'t';
