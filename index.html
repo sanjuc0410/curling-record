@@ -215,9 +215,15 @@ main.wide{max-width:none}
 .kdgc figcaption{display:grid;gap:2px;text-align:center;font-size:12.5px;line-height:1.3}
 .dg-note{display:inline-block;font-size:11.5px;color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:2px 6px}
 .kt-leg{grid-column:1/-1;justify-content:center}
-.kid-wrap{grid-auto-columns:max-content;scroll-snap-type:x mandatory}
-.kid-wrap .sheet-block{min-width:min(92vw,360px)}
-.kid-wrap .ktable{width:calc(var(--n) * 118px + 12px);min-width:0}
+/* 선수 모드: 선수 1명당 같은 폭(150px), 시트 칸은 선수 수만큼만 (늘어나지 않음) */
+.sb-wrap.kid-wrap{grid-auto-columns:max-content;justify-content:start;scroll-snap-type:x mandatory}
+.kid-wrap .sheet-block{min-width:0;width:max-content}
+.kid-wrap .ktable{table-layout:fixed;width:calc(var(--n) * 150px + (var(--n) + 1) * 6px);min-width:0}
+.kid-wrap .ktable th,.kid-wrap .ktable td.kc{width:150px}
+.kid-wrap .ktable .kband td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
+.kid-wrap .sb-head{flex-wrap:nowrap}
+.kid-wrap .sb-team{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:calc(var(--n,2) * 150px - 40px)}
+.kid-wrap .sb-head .sub{white-space:nowrap}
 .kr-list{display:grid;gap:8px}
 .kr-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card);cursor:pointer;font:inherit;color:inherit;text-align:left}
 .kr-item:hover{border-color:var(--blue)}
@@ -296,7 +302,6 @@ main.kidmode.wide{max-width:none}
 .kbar .track i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:8px}
 .kbar .track .pm{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--red);border-radius:2px}
 .kidtop .brand{font-size:20px}
-.kid-wrap{grid-auto-columns:minmax(min(92vw,360px),1fr)}
 .kcards{display:grid;gap:10px;padding:12px}
 .kcard{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px;background:var(--card);transition:box-shadow .3s,border-color .3s}
 .kcard.hit{border-color:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
@@ -945,7 +950,7 @@ function kidBoard(sess){
   const ps=sessPlayers(sess);const g=sessProgress(sess);
   const head=`<div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(sessTeamName(sess))}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div></div>`;
   if(!ps.length)return `<section class="card sheet-block kboard" id="sb_${sess.id}">${head}<p class="sub" style="padding:14px">이 시트에 선수가 없어요.</p></section>`;
-  return `<section class="card sheet-block kboard" id="sb_${sess.id}">${head}
+  return `<section class="card sheet-block kboard" id="sb_${sess.id}" style="--n:${ps.length}">${head}
    <table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
       return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${pSub(sess,p)}</div><span class="heat ${heatM(ov,T)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
    <tbody>${sess.items.map(it=>{const df=itemDef(it.itemId);const note=df?.diagram?.note;
