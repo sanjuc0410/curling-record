@@ -215,15 +215,30 @@ main.wide{max-width:none}
 .kdgc figcaption{display:grid;gap:2px;text-align:center;font-size:12.5px;line-height:1.3}
 .dg-note{display:inline-block;font-size:11.5px;color:var(--blue);background:var(--blue-soft);border-radius:6px;padding:2px 6px}
 .kt-leg{grid-column:1/-1;justify-content:center}
+/* 선수 모드 고정 화면: 위 카드 고정 + 시트별 세로 스크롤 + 이름 줄 고정 */
+main.kfix{height:var(--kh,80vh);display:flex;flex-direction:column;gap:12px;padding-block:12px 6px;overflow:hidden}
+main.kfix>*{flex:none}
+main.kfix>.kid-top{max-height:46%;overflow:auto}
+main.kfix>.sb-wrap{flex:1 1 auto;min-height:0;align-items:stretch;padding-bottom:2px}
+main.kfix .kid-wrap .sheet-block{height:100%;overflow-y:auto;overscroll-behavior:contain;display:block}
+.ktable thead{position:sticky;top:0;z-index:3;background:var(--card)}
+.ktable thead tr.khead th{padding:0;text-align:left;vertical-align:top}
+.ktable thead tr.khead .sb-head{border-bottom:1px solid var(--line)}
+.ktable thead tr.knames th{background:var(--card);border-bottom:1px solid var(--line);box-shadow:0 4px 6px -6px rgba(0,0,0,.25)}
+.kid-top.dg-off{padding-block:10px}
+.kid-top.dg-off h1{font-size:20px}
 /* 선수 모드: 선수 1명당 같은 폭(150px), 시트 칸은 선수 수만큼만 (늘어나지 않음) */
 .sb-wrap.kid-wrap{grid-auto-columns:max-content;justify-content:start;scroll-snap-type:x mandatory}
 .kid-wrap .sheet-block{min-width:0;width:max-content}
-.kid-wrap .ktable{table-layout:fixed;width:calc(var(--n) * 150px + (var(--n) + 1) * 6px);min-width:0}
+.kid-wrap .ktable{table-layout:fixed;width:calc(var(--n) * 150px + (var(--n) + 1) * 6px);min-width:0;border-spacing:6px 0;padding-top:0}
 .kid-wrap .ktable th,.kid-wrap .ktable td.kc{width:150px}
 .kid-wrap .ktable .kband td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0}
 .kid-wrap .sb-head{flex-wrap:nowrap}
 .kid-wrap .sb-team{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:calc(var(--n,2) * 150px - 40px)}
-.kid-wrap .sb-head .sub{white-space:nowrap}
+.kid-wrap .sb-head{padding:10px 10px}
+.kid-wrap .sb-head .sheet-tag{flex:none;width:32px;height:32px;font-size:19px}
+.kid-wrap .sb-head .row>div{min-width:0}
+.kid-wrap .sb-head .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kr-list{display:grid;gap:8px}
 .kr-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--card);cursor:pointer;font:inherit;color:inherit;text-align:left}
 .kr-item:hover{border-color:var(--blue)}
@@ -942,18 +957,19 @@ function viewKid(){
   const td=today();const ds=S.sessions.filter(s=>s.date===td).sort((a,b)=>(a.sheet||'Z').localeCompare(b.sheet||'Z'));
   if(!ds.length)return `<div class="card empty"><h2>오늘 만들어진 평가가 없어요</h2><p>코치 선생님께 말씀해 주세요.</p></div>`;
   const seen=new Set(),dgs=[];ds.forEach(s=>s.items.forEach(it=>{const df=itemDef(it.itemId);if(!seen.has(it.itemId)&&dgHas(df?.diagram)&&isShotSkill(skillOfItem(it.itemId))){seen.add(it.itemId);dgs.push({it,df})}}));
-  return `<section class="card kid-hello kid-top"><div class="kt-left"><h1>내 이름 아래 숫자를 눌러요</h1>
+  const dgHide=lsGet('curling.kiddg')==='0';
+  return `<section class="card kid-hello kid-top ${dgHide?'dg-off':''}"><div class="kt-left"><div class="row between" style="gap:8px"><h1>내 이름 아래 숫자를 눌러요</h1>${dgs.length?`<button class="btn sm" data-act="kiddg">${dgHide?'그림 보기':'그림 접기'}</button>`:''}</div>
     <p class="sub" style="margin:4px 0 0">${dayLabel(td)} · 숫자를 한 번 누르면 1회 기록돼요. 잘못 눌렀으면 ↺ 지우기를 누르세요.${ds.length>1?' 옆으로 밀면 다른 시트로 가요.':''}</p>
     ${ds.length>1?`<div class="chips" style="margin-top:10px;flex-wrap:wrap">${ds.map(s=>{const g=sessProgress(s);return `<button class="chip ksheet" data-act="sbjump" data-v="${s.id}"><b>${s.sheet?'시트 '+esc(s.sheet):'시트 없음'}</b> ${esc(sessTeamName(s))} <span class="num">${g.pct}%</span></button>`}).join('')}</div>`:''}</div>
-    ${dgs.length?`<div class="kt-dg" style="grid-template-columns:repeat(${dgs.length},118px)">${dgs.map(({it,df})=>`<figure class="kdgc">${diagramSVG(df.diagram,{w:112,lines:false,fs:46})}<figcaption><b>${esc(it.name)}</b>${df.diagram.note?`<span class="dg-note">${esc(df.diagram.note)}</span>`:''}</figcaption></figure>`).join('')}
+    ${dgs.length&&!dgHide?`<div class="kt-dg" style="grid-template-columns:repeat(${dgs.length},118px)">${dgs.map(({it,df})=>`<figure class="kdgc">${diagramSVG(df.diagram,{w:112,lines:false,fs:46})}<figcaption><b>${esc(it.name)}</b>${df.diagram.note?`<span class="dg-note">${esc(df.diagram.note)}</span>`:''}</figcaption></figure>`).join('')}
       <div class="dg-legend kt-leg"><span><i style="background:var(--red)"></i>목표 자리</span><span><i style="background:var(--stone-y)"></i>상대·가드</span><span>숫자 = 멈춘 자리 점수</span></div></div>`:''}</section>
    <div class="sb-wrap kid-wrap" id="sbWrap" data-k="kid">${ds.map(kidBoard).join('')}</div>`}
 function kidBoard(sess){
   const ps=sessPlayers(sess);const g=sessProgress(sess);
   const head=`<div class="sb-head"><div class="row" style="gap:10px;flex-wrap:nowrap;min-width:0">${sess.sheet?`<span class="sheet-tag" style="margin:0">${esc(sess.sheet)}</span>`:''}<div><b class="sb-team">${esc(sessTeamName(sess))}</b><div class="sub num">선수 ${ps.length}명 · ${g.done}/${g.tot} · ${g.pct}%</div></div></div></div>`;
   if(!ps.length)return `<section class="card sheet-block kboard" id="sb_${sess.id}">${head}<p class="sub" style="padding:14px">이 시트에 선수가 없어요.</p></section>`;
-  return `<section class="card sheet-block kboard" id="sb_${sess.id}" style="--n:${ps.length}">${head}
-   <table class="ktable" style="--n:${ps.length}"><thead><tr>${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
+  return `<section class="card sheet-block kboard" id="sb_${sess.id}" data-keepy="k_${sess.id}" style="--n:${ps.length}">
+   <table class="ktable" style="--n:${ps.length}"><thead><tr class="khead"><th colspan="${ps.length}">${head}</th></tr><tr class="knames">${ps.map(p=>{const at=peekAttempts(sess,p.id);const T=sessScale(sess);const ov=avg(sess.items.map(it=>conv(avg((at[it.itemId]||[]).slice(0,it.reps)),mx(it),T)));
       return `<th><div class="kname">${esc(p.name)}</div><div class="sub">${pSub(sess,p)}</div><span class="heat ${heatM(ov,T)}">${f1(ov)}</span></th>`}).join('')}</tr></thead>
    <tbody>${sess.items.map(it=>{const df=itemDef(it.itemId);const shot=isShotSkill(skillOfItem(it.itemId));const note=shot?df?.diagram?.note:'';
      return `<tr class="kband"><td colspan="${ps.length}"><b>${esc(it.name)}</b> <span class="sub">${it.reps}회 · ${scaleTxt(mx(it))}${shot&&dgHas(df?.diagram)?' · 위 그림 참고':''}</span>${note?` <span class="pill blue">${esc(note)}</span>`:''}</td></tr><tr>${ps.map(p=>kidCell(sess,p,it)).join('')}</tr>`}).join('')}</tbody></table></section>`}
@@ -1053,9 +1069,9 @@ function render(){
   else if(!S.loaded)body=`<div class="card empty"><h2>기록을 불러오는 중</h2><p>구글 시트에서 팀, 선수, 평가 기록을 가져오고 있습니다.</p></div>`;
   else body=(S.syncErr?`<div class="banner err" role="alert">서버와 연결이 끊겼습니다. 입력 ${S.queue.length}건을 이 기기에 보관 중이며, 연결되면 자동으로 보냅니다.</div>`:'')+
     (S.kid.on?viewKid():({dash:viewDash,eval:viewEval,result:()=>viewResult(false),rank:viewRank,memo:viewMemo,player:viewPlayer,set:viewSet}[S.tab]||viewEval)());
-  const okb=document.getElementById('kbScroll'),kbX=okb?.scrollLeft,kbK=okb?.dataset.k;const ow=document.getElementById('sbWrap'),sbX=ow?.scrollLeft,sbK=ow?.dataset.k+'|'+S.resDate+'|'+S.boardDate;const y=window.scrollY;const chipX=document.querySelector('.chips')?.scrollLeft;
-  const kid=S.kid.on&&S.pin;document.getElementById('app').innerHTML=(kid?kidHeader():header())+`<main class="${kid?'kidmode':''} ${!kid&&['eval','result','rank'].includes(S.tab)||kid?'wide':''} ${!kid&&S.cell&&S.tab==='eval'&&S.sessId?'has-sheet':''}">${body}</main>`;
-  window.scrollTo(0,y);const nkb=document.getElementById('kbScroll');if(nkb&&kbX&&nkb.dataset.k===kbK)nkb.scrollLeft=kbX;const sw=document.getElementById('sbWrap');if(sw&&sbX&&sw.dataset.k+'|'+S.resDate+'|'+S.boardDate===sbK)sw.scrollLeft=sbX;
+  const keepY={};document.querySelectorAll('[data-keepy]').forEach(el=>{keepY[el.dataset.keepy]=el.scrollTop});const okb=document.getElementById('kbScroll'),kbX=okb?.scrollLeft,kbK=okb?.dataset.k;const ow=document.getElementById('sbWrap'),sbX=ow?.scrollLeft,sbK=ow?.dataset.k+'|'+S.resDate+'|'+S.boardDate;const y=window.scrollY;const chipX=document.querySelector('.chips')?.scrollLeft;
+  const kid=S.kid.on&&S.pin;document.getElementById('app').innerHTML=(kid?kidHeader():header())+`<main class="${kid?'kidmode':''} ${kid&&S.kid.page!=='result'&&!S.kid.exit?'kenter':''} ${!kid&&['eval','result','rank'].includes(S.tab)||kid?'wide':''} ${!kid&&S.cell&&S.tab==='eval'&&S.sessId?'has-sheet':''}">${body}</main>`;
+  window.scrollTo(0,y);fitKid();document.querySelectorAll('[data-keepy]').forEach(el=>{const v=keepY[el.dataset.keepy];if(v)el.scrollTop=v});const nkb=document.getElementById('kbScroll');if(nkb&&kbX&&nkb.dataset.k===kbK)nkb.scrollLeft=kbX;const sw=document.getElementById('sbWrap');if(sw&&sbX&&sw.dataset.k+'|'+S.resDate+'|'+S.boardDate===sbK)sw.scrollLeft=sbX;
   const ch=document.querySelector('.chips');if(ch){const cur=ch.querySelector('[aria-current="true"]');if(chipX!=null)ch.scrollLeft=chipX;if(cur){const l=cur.offsetLeft-ch.offsetLeft;if(l<ch.scrollLeft||l+cur.offsetWidth>ch.scrollLeft+ch.clientWidth)ch.scrollLeft=l-16}}
   if(!S.pin)setTimeout(()=>document.getElementById('pinIn')?.focus(),0)}
 function softRender(){S.softRender=true;render()}
@@ -1164,6 +1180,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]
   case 'kq':{const ss=sessOf(b.dataset.s);if(!ss)break;const it=ss.items.find(x=>x.itemId===b.dataset.i);const d=getDraft(ss,b.dataset.p);const a=d.attempts[b.dataset.i];const t=a.findIndex(x=>x==null);if(t<0){toast('이 항목은 다 했어요');break}
     if(!it||+v<0||+v>mx(it))break;a[t]=+v;schedule(ss,b.dataset.p);S.kidHit=ss.id+'|'+b.dataset.p+'|'+b.dataset.i;clearTimeout(S.kidHitT);S.kidHitT=setTimeout(()=>{S.kidHit=null;softRender()},900);render();
     toast(`${playerOf(b.dataset.p)?.name||''} · ${it?.name||''} ${t+1}회 ${v}점${a.every(x=>x!=null)?' · 완료!':''}`);break}
+  case 'kiddg':lsSet('curling.kiddg',lsGet('curling.kiddg')==='0'?'1':'0');render();break;
   case 'kidres':S.kidRes=v;S.resP=null;render();window.scrollTo(0,0);break;
   case 'kidrt':S.kidRankTeam=v;render();break;
   case 'dgopen':{const k=si+'-'+ii;S.dgEdit=S.dgEdit===k?null:k;render();break}
@@ -1248,6 +1265,11 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-act]
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?'순위표를 복사했습니다. 구글 시트나 엑셀에 붙여 넣으세요':'복사하지 못했습니다. 표를 직접 선택해 복사하세요')}
 function strip(o){const c={...o};delete c.id;return c}
 window.addEventListener('pagehide',flushAll);
+/* 선수 모드: 화면 높이에 맞춰 위 그림 카드는 고정, 시트마다 따로 세로 스크롤 */
+function fitKid(){const m=document.querySelector('main.kenter');if(!m)return;
+  const ok=window.innerHeight>=520&&window.innerWidth>=600;m.classList.toggle('kfix',ok);if(!ok){m.style.removeProperty('--kh');return}
+  const top=m.getBoundingClientRect().top+window.scrollY;m.style.setProperty('--kh',Math.max(320,window.innerHeight-top)+'px');if(window.scrollY)window.scrollTo(0,0)}
+window.addEventListener('resize',()=>fitKid());
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushAll()});
 
 /* ---------- boot ---------- */
